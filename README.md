@@ -1,12 +1,14 @@
 ## Requirements: Python 3.12+, Node.js 18+, npm, g++ с поддержкой C++20 и DLL runtime MSYS2 в `PATH`/DLL search path.
 
+
+
+
+## Запуск
+
 ```powershell
 cd outputs/clean_project
 .\build.ps1
 ```
-
-
-## Запуск
 
 ```powershell
 .\start.ps1
