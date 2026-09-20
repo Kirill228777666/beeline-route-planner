@@ -6,17 +6,23 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "test": "vitest",
     "preview": "vite preview"
   },
   "dependencies": {
     "@vitejs/plugin-react": "6.1.1",
-    "vite": "8.3.0",
-    "typescript": "7.0.2",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/react": "19.3.0",
-    "@types/react-dom": "19.3.0"
+    "@types/react-dom": "19.3.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.11"
   }
 }
