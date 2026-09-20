@@ -1,0 +1,30 @@
+[
+  {
+    "id": "zone_1",
+    "label": "zone_1",
+    "request_count": 66,
+    "team_count": 12,
+    "file": "/datasets/zone_1.json"
+  },
+  {
+    "id": "zone_2",
+    "label": "zone_2",
+    "request_count": 83,
+    "team_count": 12,
+    "file": "/datasets/zone_2.json"
+  },
+  {
+    "id": "zone_3",
+    "label": "zone_3",
+    "request_count": 56,
+    "team_count": 11,
+    "file": "/datasets/zone_3.json"
+  },
+  {
+    "id": "combined",
+    "label": "combined",
+    "request_count": 205,
+    "team_count": 35,
+    "file": "/datasets/combined.json"
+  }
+]

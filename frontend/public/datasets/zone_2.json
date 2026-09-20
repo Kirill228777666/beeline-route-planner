@@ -1,0 +1,1427 @@
+{
+  "name": "zone_2",
+  "requests": [
+    {
+      "id": 2067472,
+      "address": "Домодедово, проезд.Советский 1-й, д. 1А",
+      "lat": 55.81362642966211,
+      "lon": 37.724252885687164,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2084466,
+      "address": "Город Москва, проезд.Гурьевский, д. 23 к 1",
+      "lat": 55.7111842392385,
+      "lon": 37.58459321729373,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2014416,
+      "address": "Город Москва, ул.Кустанайская, д. 8 к 1",
+      "lat": 55.68095155328512,
+      "lon": 37.717816814947874,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2068359,
+      "address": "Город Москва, ш.Каширское, д. 136",
+      "lat": 55.769615823253986,
+      "lon": 37.52878354008309,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2066944,
+      "address": "Домодедово, ул.Зеленая, д. 85",
+      "lat": 55.71279869381338,
+      "lon": 37.64070340024773,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2052041,
+      "address": "Город Москва, ул.Москворечье, д. 4 к 6",
+      "lat": 55.8250117264688,
+      "lon": 37.69421057122294,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2023807,
+      "address": "Город Москва, проезд.Загорьевский, д. 9",
+      "lat": 55.73049595002085,
+      "lon": 37.67145360921044,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2060484,
+      "address": "Город Москва, ул.6-я Радиальная, д. 5 к 3",
+      "lat": 55.685825574100015,
+      "lon": 37.67538014450576,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2063591,
+      "address": "Город Москва, ул.Бирюлёвская, д. 39",
+      "lat": 55.71913269326091,
+      "lon": 37.55872608519625,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2053552,
+      "address": "Кашира, ул.Победы, д. 9",
+      "lat": 55.82683595664799,
+      "lon": 37.67184582696762,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2058066,
+      "address": "Город Москва, ул.Братеевская, д. 18 к 1",
+      "lat": 55.690130902715026,
+      "lon": 37.53491728257388,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2002915,
+      "address": "Город Москва, б-р.Ореховый, д. 35 к 1",
+      "lat": 55.71370711505413,
+      "lon": 37.54355844331905,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2003566,
+      "address": "Город Москва, б-р.Ореховый, д. 35 к 1",
+      "lat": 55.71370711505413,
+      "lon": 37.54355844331905,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2068946,
+      "address": "Город Москва, пр-кт.Пролетарский, д. 14А",
+      "lat": 55.79444079604,
+      "lon": 37.707060643127186,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2055454,
+      "address": "Домодедово, ул.Корнеева, д. 50",
+      "lat": 55.72345827907324,
+      "lon": 37.644367447881955,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2035057,
+      "address": "Домодедово, ул.Корнеева, д. 40",
+      "lat": 55.776645952165126,
+      "lon": 37.512081891885025,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2075745,
+      "address": "Домодедово, ул.Зеленая, д. 85",
+      "lat": 55.71279869381338,
+      "lon": 37.64070340024773,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2065717,
+      "address": "Город Москва, ул.Ереванская, д. 29",
+      "lat": 55.69522618535906,
+      "lon": 37.59101891732309,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2044117,
+      "address": "Город Москва, ул.Севанская, д. 15 к 1",
+      "lat": 55.81918888602406,
+      "lon": 37.570666211424395,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2076173,
+      "address": "Город Москва, ул.6-я Радиальная, д. 7/1 к 2",
+      "lat": 55.70521548207849,
+      "lon": 37.51931144151371,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2000876,
+      "address": "Город Москва, проезд.Загорьевский, д. 9",
+      "lat": 55.73049595002085,
+      "lon": 37.67145360921044,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2062011,
+      "address": "Кашира, ул.Садовая, д. 18",
+      "lat": 55.70571135494858,
+      "lon": 37.64581593573559,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2057353,
+      "address": "Кашира, ул.Садовая, д. 2/11",
+      "lat": 55.741795681640504,
+      "lon": 37.722782526081424,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2002245,
+      "address": "Город Москва, ул.Паромная, д. 9 к 1",
+      "lat": 55.784479221068324,
+      "lon": 37.53303741943091,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2014494,
+      "address": "Город Москва, ул.Братеевская, д. 16 к 1",
+      "lat": 55.7404321661219,
+      "lon": 37.6685050358111,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2078920,
+      "address": "Город Москва, ул.Борисовские Пруды, д. 20 к 1",
+      "lat": 55.67187859255821,
+      "lon": 37.65990386189427,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2078876,
+      "address": "Кашира, ул.Юбилейная, д. 9",
+      "lat": 55.78414242330938,
+      "lon": 37.526275165448894,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2023094,
+      "address": "Кашира, ул.8 Марта, д. 22",
+      "lat": 55.692876593507826,
+      "lon": 37.5379045227915,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2079144,
+      "address": "Город Москва, б-р.Ореховый, д. 7 к 1",
+      "lat": 55.80727307409048,
+      "lon": 37.659277607635595,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2060141,
+      "address": "Город Москва, ш.Каширское, д. 94 к 1",
+      "lat": 55.71975138340145,
+      "lon": 37.61810218251776,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2079450,
+      "address": "Город Москва, б-р.Ореховый, д. 11 к 1",
+      "lat": 55.82404195796698,
+      "lon": 37.60093410239089,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2058129,
+      "address": "Город Москва, проезд.Борисовский, д. 44 к 3",
+      "lat": 55.73131067305803,
+      "lon": 37.69758119568228,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2093798,
+      "address": "Город Москва, проезд.Ореховый, д. 41",
+      "lat": 55.742711237147454,
+      "lon": 37.5189608366508,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2089696,
+      "address": "Домодедово, ул.Ильюшина, д. 20",
+      "lat": 55.818205544240776,
+      "lon": 37.727184071680526,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2020362,
+      "address": "Кашира, ул.Юбилейная, д. 8",
+      "lat": 55.71250702314079,
+      "lon": 37.57224882894661,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2040698,
+      "address": "Город Москва, ул.Кустанайская, д. 9 к 1",
+      "lat": 55.68547407492995,
+      "lon": 37.60441525338683,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2002427,
+      "address": "Город Москва, пр-кт.Пролетарский, д. 18 к 4",
+      "lat": 55.825675486922265,
+      "lon": 37.66789999539964,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 20,
+      "work_type": "ADD_ON",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2051603,
+      "address": "Город Москва, ул.Борисовские Пруды, д. 20 к 1",
+      "lat": 55.67187859255821,
+      "lon": 37.65990386189427,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 70,
+      "work_type": "CONNECTION",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2013404,
+      "address": "Кашира, ул.Кржижановского, д. 7",
+      "lat": 55.82105303261429,
+      "lon": 37.633497588518075,
+      "window_start": "20:00",
+      "window_end": "22:00",
+      "service_duration": 20,
+      "work_type": "ADD_ON",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2072476,
+      "address": "Город Москва, ул.Медынская, д. 5 к 1",
+      "lat": 55.79239193309098,
+      "lon": 37.70634801206179,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 20,
+      "work_type": "ADD_ON",
+      "required_skills": [
+        "CONNECTION"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2090989,
+      "address": "Домодедово, ул.Гагарина, д. 55/2",
+      "lat": 55.79462693206966,
+      "lon": 37.62728732667863,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2007660,
+      "address": "Домодедово, ул.1-я Коммунистическая, д. 39",
+      "lat": 55.68371461745352,
+      "lon": 37.63621778819244,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2089067,
+      "address": "Город Москва, ул.Борисовские Пруды, д. 48 к 2",
+      "lat": 55.6840697689727,
+      "lon": 37.60215477756224,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2065268,
+      "address": "Ступино, ул.Калинина, д. 34",
+      "lat": 55.76384275112301,
+      "lon": 37.65752570305019,
+      "window_start": "20:00",
+      "window_end": "22:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2033880,
+      "address": "Город Москва, проезд.Шипиловский, д. 59 к 2",
+      "lat": 55.683165846429766,
+      "lon": 37.71265753184445,
+      "window_start": "20:00",
+      "window_end": "22:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2037590,
+      "address": "Город Москва, проезд.Востряковский, д. 15 к 2",
+      "lat": 55.801114574968814,
+      "lon": 37.55583813606295,
+      "window_start": "20:00",
+      "window_end": "22:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2033507,
+      "address": "Город Москва, ул.Бирюлёвская, д. 58 к 3",
+      "lat": 55.79644336927682,
+      "lon": 37.69680573019199,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2088209,
+      "address": "Город Москва, ул.Домодедовская, д. 31",
+      "lat": 55.70898140259087,
+      "lon": 37.53161787401419,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2024482,
+      "address": "Город Москва, ул.Весёлая, д. 33 к 7",
+      "lat": 55.68516827631742,
+      "lon": 37.724863702589644,
+      "window_start": "20:00",
+      "window_end": "22:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2040111,
+      "address": "Ступино, ул.Калинина, д. 34",
+      "lat": 55.76384275112301,
+      "lon": 37.65752570305019,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2046199,
+      "address": "Домодедово, ул.Ильюшина, д. 11 к 2",
+      "lat": 55.751336288116875,
+      "lon": 37.52663801259827,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2075282,
+      "address": "Город Москва, проезд.Востряковский, д. 15 к 4",
+      "lat": 55.8258940359205,
+      "lon": 37.68477323302068,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2063577,
+      "address": "Домодедово, ул.Корнеева, д. 48",
+      "lat": 55.744589017219845,
+      "lon": 37.672719352403654,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2007610,
+      "address": "Город Москва, ул.Луганская, д. 4 к 1",
+      "lat": 55.819140129722655,
+      "lon": 37.72750643211882,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2019216,
+      "address": "Город Москва, ул.Луганская, д. 3 к 1",
+      "lat": 55.71128599688411,
+      "lon": 37.578645557905546,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2011872,
+      "address": "Город Москва, ул.Весёлая, д. 33 к 7",
+      "lat": 55.68516827631742,
+      "lon": 37.724863702589644,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2054422,
+      "address": "Город Москва, ул.Луганская, д. 1",
+      "lat": 55.81064924366772,
+      "lon": 37.555192118789996,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2004724,
+      "address": "Город Москва, ул.Кантемировская, д. 5 к 2",
+      "lat": 55.714173790886996,
+      "lon": 37.65070629785768,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2011899,
+      "address": "Город Москва, проезд.Загорьевский, д. 7 к 2",
+      "lat": 55.76166190139949,
+      "lon": 37.566015927321274,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2060886,
+      "address": "Город Москва, ул.Маршала Захарова, д. 18 к 1",
+      "lat": 55.77090904854238,
+      "lon": 37.58990264398511,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2032066,
+      "address": "Город Москва, ул.Генерала Белова, д. 45 к 2",
+      "lat": 55.75113888554275,
+      "lon": 37.665812268629665,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2063894,
+      "address": "Город Москва, ул.Шипиловская, д. 38",
+      "lat": 55.758570150472224,
+      "lon": 37.59892594256904,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2064168,
+      "address": "Город Москва, проезд.Гурьевский, д. 19 к 2",
+      "lat": 55.74559968132526,
+      "lon": 37.57621934439521,
+      "window_start": "16:00",
+      "window_end": "18:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2040919,
+      "address": "Город Москва, проезд.Борисовский, д. 44 к 3",
+      "lat": 55.73131067305803,
+      "lon": 37.69758119568228,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2036961,
+      "address": "Город Москва, проезд.Ореховый, д. 23 к 1",
+      "lat": 55.810918853804466,
+      "lon": 37.56052018917631,
+      "window_start": "18:00",
+      "window_end": "20:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2012329,
+      "address": "Город Москва, ул.Булатниковская, д. 4 к 1",
+      "lat": 55.72677237018943,
+      "lon": 37.60763476773631,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2095692,
+      "address": "Город Москва, б-р.Ореховый, д. 61 к 1",
+      "lat": 55.73845789197832,
+      "lon": 37.71596426356584,
+      "window_start": "10:00",
+      "window_end": "12:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2013583,
+      "address": "Домодедово, проезд.Кутузовский, д. 16",
+      "lat": 55.80849189210683,
+      "lon": 37.66802595975343,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2003151,
+      "address": "Кашира, ул.Ленина, д. 11 к 3",
+      "lat": 55.81402467463165,
+      "lon": 37.564533876329655,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2045778,
+      "address": "Кашира, ул.Металлургов, д. 5 к 3",
+      "lat": 55.683189540728925,
+      "lon": 37.728005539905276,
+      "window_start": "14:00",
+      "window_end": "16:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2020055,
+      "address": "Город Москва, ул.Мусы Джалиля, д. 9 к 1",
+      "lat": 55.69442972738296,
+      "lon": 37.7207866309816,
+      "window_start": "12:00",
+      "window_end": "14:00",
+      "service_duration": 30,
+      "work_type": "REPAIR",
+      "required_skills": [
+        "LOCAL"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2007258,
+      "address": "обл.Московская область, г.Домодедово, пгт.Востряково-1, ул.Жуковского, д. 14/18",
+      "lat": 55.70685562171042,
+      "lon": 37.546302424021995,
+      "window_start": "20:00",
+      "window_end": "22:00",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2078673,
+      "address": "МО, г. Кашира Центральная ул. д. 21",
+      "lat": 55.7238374613598,
+      "lon": 37.609015590297055,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2098998,
+      "address": "МО, г. Кашира Кржижановского ул. д. 5/1",
+      "lat": 55.8053765841201,
+      "lon": 37.61538261662237,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2032589,
+      "address": "МО, г. Кашира Кржижановского ул. д. 7к2",
+      "lat": 55.67478259570897,
+      "lon": 37.62335577196441,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2051774,
+      "address": "МО, г. Кашира Кржижановского ул. д. 5/3",
+      "lat": 55.73273978166282,
+      "lon": 37.649830617737024,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2090915,
+      "address": "МО, г. Кашира Кржижановского ул. д. 5/2",
+      "lat": 55.80035999387503,
+      "lon": 37.66175289079081,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2045243,
+      "address": "МО, г. Кашира Кржижановского ул. д. 5/1",
+      "lat": 55.8053765841201,
+      "lon": 37.61538261662237,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2081698,
+      "address": "МО, г. Ступино Андропова ул. д. 37",
+      "lat": 55.72349768392742,
+      "lon": 37.58035899364855,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2097168,
+      "address": "МО, г. Ступино Андропова ул. д. 33",
+      "lat": 55.75894224058837,
+      "lon": 37.52453023478854,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2065034,
+      "address": "МО, г. Кашира Центральная ул. д. 19",
+      "lat": 55.76666540239006,
+      "lon": 37.537827407978476,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2001287,
+      "address": "Москва Бирюлевская ул. д. 44",
+      "lat": 55.70217149280012,
+      "lon": 37.70171192659531,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    },
+    {
+      "id": 2031495,
+      "address": "Москва Булатниковский пр-зд. д. 6к1",
+      "lat": 55.784623614512384,
+      "lon": 37.57994368944317,
+      "window_start": "00:01",
+      "window_end": "23:59",
+      "service_duration": 80,
+      "work_type": "EMERGENCY",
+      "required_skills": [
+        "EMERGENCY"
+      ],
+      "required_transport": null,
+      "region_id": "zone_2"
+    }
+  ],
+  "teams": [
+    {
+      "id": 20001,
+      "name": "Бригада Андреев",
+      "start_lat": 55.75096754141684,
+      "start_lon": 37.609242733220036,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20002,
+      "name": "Бригада Белоновский",
+      "start_lat": 55.74651395696681,
+      "start_lon": 37.61795064172707,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20003,
+      "name": "Бригада Бузань",
+      "start_lat": 55.73416499930301,
+      "start_lon": 37.62437068614377,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20004,
+      "name": "Бригада Горбанев",
+      "start_lat": 55.729486099508186,
+      "start_lon": 37.60748218265296,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20005,
+      "name": "Бригада Демин",
+      "start_lat": 55.776747748106715,
+      "start_lon": 37.69795931755565,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20006,
+      "name": "Бригада Каушнян",
+      "start_lat": 55.82258042376488,
+      "start_lon": 37.58298176940996,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "CONNECTION"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20007,
+      "name": "Бригада Козырь",
+      "start_lat": 55.750346259520285,
+      "start_lon": 37.61853604555337,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20008,
+      "name": "Бригада Макаров",
+      "start_lat": 55.7501823874116,
+      "start_lon": 37.58147384403925,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20009,
+      "name": "Бригада Паршин",
+      "start_lat": 55.74822254319083,
+      "start_lon": 37.613703305758534,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20010,
+      "name": "Бригада Рыбин",
+      "start_lat": 55.734184102858414,
+      "start_lon": 37.62655767307966,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "LOCAL",
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20011,
+      "name": "Бригада Саламатин",
+      "start_lat": 55.752229958620255,
+      "start_lon": 37.59853435079101,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "CONNECTION",
+        "EMERGENCY"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    },
+    {
+      "id": 20012,
+      "name": "Бригада Царьков",
+      "start_lat": 55.71477703291923,
+      "start_lon": 37.61010846985038,
+      "shift_start": "08:00",
+      "shift_end": "22:00",
+      "skills": [
+        "CONNECTION"
+      ],
+      "transport": "CAR",
+      "region_id": "zone_2"
+    }
+  ],
+  "region_id": "zone_2",
+  "regions": [
+    "zone_2"
+  ]
+}
