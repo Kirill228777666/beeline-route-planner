@@ -1,0 +1,6 @@
+import { metricNumber } from "../lib/presentation";
+import type { Plan, PlanDiff } from "../types";
+
+export function PlanHistory({ before, after, diff }: { before: Plan; after: Plan; diff: PlanDiff }) {
+  return <section className="history-card"><div className="history-title"><span className="section-kicker">ИСТОРИЯ ПЛАНА</span><h2>Что изменилось после события</h2></div><div className="history-flow"><div><span>01</span><strong>Исходный план</strong><small>{metricNumber(before.metrics, "assigned")} заявок · {metricNumber(before.metrics, "used_teams", before.routes.length)} бригад</small></div><i aria-hidden="true">→</i><div className="history-event"><span>13:17</span><strong>Событие</strong><small>Обновление оперативного плана</small></div><i aria-hidden="true">→</i><div><span>02</span><strong>Перепланированный план</strong><small>{metricNumber(after.metrics, "assigned")} заявок · {metricNumber(after.metrics, "used_teams", after.routes.length)} бригад</small></div></div><div className="diff-chips"><span>Переназначено: {diff.reassigned_request_ids.length}</span><span>Время изменено: {diff.time_changed_request_ids.length}</span><span>Маршрутов изменено: {diff.route_changed_team_ids.length}</span><span>Новых: {diff.new_request_ids.length}</span><span>Отменено: {diff.cancelled_request_ids.length}</span></div></section>;
+}
