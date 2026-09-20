@@ -1,4 +1,4 @@
-requirements: Python 3.12+, Node.js 18+, npm, g++ с поддержкой C++20 и DLL runtime MSYS2 в `PATH`/DLL search path.
+## Requirements: Python 3.12+, Node.js 18+, npm, g++ с поддержкой C++20 и DLL runtime MSYS2 в `PATH`/DLL search path.
 
 ```powershell
 cd outputs/clean_project
