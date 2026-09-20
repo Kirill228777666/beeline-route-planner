@@ -62,10 +62,13 @@ describe("ControlBar", () => {
 
 describe("PlanHistory", () => {
   it("shows parent and child plans with changed routes", () => {
-    const child = { ...optimized, plan_id: "child", parent_plan_id: "parent" };
+    const child = { ...optimized, plan_id: "child", parent_plan_id: "parent", event_time: 797 };
     render(<PlanHistory before={baseline} after={child} diff={{ reassigned_request_ids: [10], time_changed_request_ids: [11], route_changed_team_ids: [10003], cancelled_request_ids: [], new_request_ids: [99] }} />);
     expect(screen.getByText("Исходный план")).toBeInTheDocument();
     expect(screen.getByText("Перепланированный план")).toBeInTheDocument();
+    expect(screen.getByText("13:17")).toBeInTheDocument();
+    expect(screen.getByText("В пути 0 → 417 мин")).toBeInTheDocument();
+    expect(screen.getByText("Пробег 0 → 207,6 км")).toBeInTheDocument();
     expect(screen.getByText("Маршрутов изменено: 1")).toBeInTheDocument();
   });
 });
