@@ -28,7 +28,7 @@ export function ControlBar({ datasetId, datasetName, datasets, mode, loading, ha
       <div className="brand-symbol" aria-hidden="true"><span /><span /><span /><span /><span /></div>
       <div><span className="brand-caption">BEELINE BUSINESS</span><strong>Маршрутизация бригад</strong></div>
     </div>
-    <div className="district-chip"><span>Активный участок</span><strong>Район: {datasetId === "custom" ? datasetName : datasetId}</strong></div>
+    <div className="district-chip"><span>Активный участок</span><strong>Участок: {datasetId === "custom" ? datasetName : datasetId}</strong></div>
     <div className="control-actions">
       <label className="field-control dataset-control"><span>Набор данных</span><select aria-label="Набор данных" value={datasetId} onChange={(event) => onDatasetChange(event.target.value)}>{datasets.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.label}</option>)}{datasetId === "custom" && <option value="custom">{datasetName}</option>}</select></label>
       <label className="upload-button">Загрузить JSON<input type="file" accept="application/json,.json" onChange={handleFile} /></label>

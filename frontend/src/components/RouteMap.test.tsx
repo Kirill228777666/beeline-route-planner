@@ -36,6 +36,7 @@ describe("RouteMap", () => {
     expect(points).toHaveLength(2);
     expect(points[0]).toHaveAttribute("transform", expect.not.stringMatching(points[1].getAttribute("transform") ?? ""));
     expect(screen.getAllByText("Авария").length).toBeGreaterThan(0);
+    expect(screen.getByText("Схематическая карта. Координаты демонстрационные.")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     fireEvent.click(points[0]);
     expect(selectRequest).toHaveBeenCalledWith(11);

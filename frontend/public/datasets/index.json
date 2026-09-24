@@ -26,5 +26,12 @@
     "request_count": 205,
     "team_count": 35,
     "file": "/datasets/combined.json"
+  },
+  {
+    "id": "demo_showcase",
+    "label": "demo_showcase",
+    "request_count": 5,
+    "team_count": 4,
+    "file": "/datasets/demo_showcase.json"
   }
 ]

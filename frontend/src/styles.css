@@ -104,7 +104,7 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .route-line, .office-marker, .request-marker, .unassigned-marker { cursor: pointer; transition: opacity .2s ease, stroke-width .2s ease, transform .15s ease; }.route-line:hover { stroke-width: 9; }.request-marker:hover { transform: scale(1.15); transform-box: fill-box; transform-origin: center; }
 .map-legend { position: absolute; left: 14px; bottom: 13px; display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 10px; color: #595d63; background: #ffffffeb; border: 1px solid #d9dcda; border-radius: 9px; box-shadow: 0 6px 16px #0001; font-size: 9px; font-weight: 700; }
 .map-legend div { display: flex; align-items: center; gap: 5px; }.map-legend i { width: 9px; height: 9px; display: inline-block; border-radius: 50%; }.legend-office { background: #17191d; }.legend-request { background: var(--yellow); }.legend-emergency { background: var(--red); box-shadow: 0 0 0 3px #d9304f24; }.legend-unassigned { background: #fff; border: 2px solid var(--red); }
-.map-region, .map-alert { position: absolute; top: 13px; padding: 7px 10px; background: #ffffffeb; border: 1px solid #d9dcda; border-radius: 8px; font-size: 9px; font-weight: 800; }.map-region { left: 14px; }.map-alert { right: 14px; color: var(--red); }
+.map-region, .map-alert { position: absolute; top: 13px; padding: 7px 10px; background: #ffffffeb; border: 1px solid #d9dcda; border-radius: 8px; font-size: 9px; font-weight: 800; }.map-region { left: 14px; }.map-alert { right: 14px; color: var(--red); }.map-disclaimer { position: absolute; right: 14px; bottom: 13px; color: #676c72; font-size: 8px; font-weight: 700; }
 
 .teams-panel { max-height: 760px; overflow: hidden; }
 .teams-heading { padding: 18px 18px 14px; border-bottom: 1px solid #eceeeb; }

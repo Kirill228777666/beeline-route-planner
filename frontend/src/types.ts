@@ -10,7 +10,9 @@ export type RequestInput = {
   required_skills: string[];
   required_transport?: string | null;
   required_equipment?: string[];
+  section_id?: string;
   region_id?: string;
+  district?: string;
   release_time?: string | number | null;
 };
 
@@ -24,7 +26,11 @@ export type TeamInput = {
   skills: string[];
   transport: string;
   equipment?: string[];
+  section_id?: string;
   region_id?: string;
+  district?: string;
+  available?: boolean;
+  available_from?: string | number | null;
 };
 
 export type Dataset = {
@@ -32,6 +38,7 @@ export type Dataset = {
   requests: RequestInput[];
   teams: TeamInput[];
   regions?: string[];
+  sections?: string[];
 };
 
 export type DatasetOption = {
@@ -121,7 +128,7 @@ export type EmergencyDraft = {
   lon: number;
   window_start: string;
   window_end: string;
-  region_id: string;
+  section_id: string;
 };
 
 export type MapPoint = {

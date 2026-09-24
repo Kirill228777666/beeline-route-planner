@@ -74,7 +74,8 @@ export function RouteMap({ dataset, plan, selectedTeamId, selectedRequestId, onS
         })}
       </svg>
       <div className="map-legend"><div><i className="legend-office" />Офис</div><div><i className="legend-request" />Заявка</div><div><i className="legend-emergency" />Авария</div><div><i className="legend-unassigned" />Неназначенная</div></div>
-      <div className="map-region">{dataset.regions?.join(" · ") || dataset.name}</div>
+      <div className="map-region">Участки: {dataset.sections?.join(" · ") || dataset.regions?.join(" · ") || dataset.name}</div>
+      <div className="map-disclaimer">Схематическая карта. Координаты демонстрационные.</div>
       <span className="sr-only">Авария</span>
       {unassigned.size > 0 && <div className="map-alert">Неназначено: {unassigned.size}</div>}
     </div>

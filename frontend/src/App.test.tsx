@@ -41,13 +41,13 @@ describe("App", () => {
   it("loads zone_1 into the new dashboard shell", async () => {
     render(<App />);
     expect(await screen.findByText("Активный участок")).toBeInTheDocument();
-    expect(screen.getByText("Район: zone_1")).toBeInTheDocument();
+    expect(screen.getByText("Участок: zone_1")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Построить план/ })).toHaveLength(2);
   });
 
   it("builds both plans, switches baseline, and opens a factual request drawer", async () => {
     render(<App />);
-    await screen.findByText("Район: zone_1");
+    await screen.findByText("Участок: zone_1");
     fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
     expect(await screen.findByText("Оптимизированный план")).toBeInTheDocument();
     expect(screen.getByText("Python verifier: OK")).toBeInTheDocument();

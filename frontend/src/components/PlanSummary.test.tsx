@@ -49,10 +49,10 @@ describe("PlanSummary", () => {
 });
 
 describe("ControlBar", () => {
-  it("identifies the active region and disables replanning in baseline mode", () => {
+  it("identifies the active section and disables replanning in baseline mode", () => {
     const openEvent = vi.fn();
     render(<ControlBar datasetId="zone_1" datasetName="Север" datasets={datasets} mode="baseline" loading={false} hasPlan onDatasetChange={vi.fn()} onFile={vi.fn()} onBuild={vi.fn()} onModeChange={vi.fn()} onOpenEvent={openEvent} />);
-    expect(screen.getByText("Район: zone_1")).toBeInTheDocument();
+    expect(screen.getByText("Участок: zone_1")).toBeInTheDocument();
     const eventButton = screen.getByRole("button", { name: "Событие в течение дня" });
     expect(eventButton).toBeDisabled();
     fireEvent.click(eventButton);

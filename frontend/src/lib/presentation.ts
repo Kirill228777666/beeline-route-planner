@@ -38,6 +38,10 @@ export function workTypeLabel(workType: string | undefined) {
   return labels[String(workType ?? "").toUpperCase()] ?? workType ?? "Не указан";
 }
 
+export function sectionValue(value: { section_id?: string; region_id?: string }) {
+  return value.section_id || value.region_id || "";
+}
+
 export function validateDataset(value: unknown): Dataset {
   if (!value || typeof value !== "object") throw new Error("JSON должен содержать объект dataset");
   const candidate = value as Partial<Dataset>;
@@ -48,6 +52,7 @@ export function validateDataset(value: unknown): Dataset {
     requests: candidate.requests,
     teams: candidate.teams,
     regions: Array.isArray(candidate.regions) ? candidate.regions : undefined,
+    sections: Array.isArray(candidate.sections) ? candidate.sections : undefined,
   };
 }
 

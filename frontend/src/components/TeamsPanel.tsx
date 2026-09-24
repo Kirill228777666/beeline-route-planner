@@ -1,4 +1,4 @@
-import { formatClock, formatDistance, workTypeLabel } from "../lib/presentation";
+import { formatClock, formatDistance, sectionValue, workTypeLabel } from "../lib/presentation";
 import type { Dataset, Plan, PlanDiff, RequestStatus } from "../types";
 import { TEAM_COLORS } from "./RouteMap";
 
@@ -23,7 +23,7 @@ export function TeamsPanel({ dataset, plan, selectedTeamId, selectedRequestId, s
     const active = selectedTeamId === route.team_id;
     const changed = diff?.route_changed_team_ids.includes(route.team_id) ?? false;
     return <article key={route.team_id} className={`team-card ${active ? "active" : ""} ${changed ? "changed" : ""}`} style={{ "--team-color": TEAM_COLORS[routeIndex % TEAM_COLORS.length] } as React.CSSProperties}>
-      <button type="button" className="team-card-head" onClick={() => onSelectTeam(active ? null : route.team_id)}><span className="team-color" /><div><strong>{team.name || `Бригада ${team.id}`}</strong><small>{team.region_id || "Регион не указан"} · {formatClock(Number(team.shift_start?.split(":")[0]) * 60 + Number(team.shift_start?.split(":")[1]))}–{team.shift_end}</small></div><span className="team-card-total">{route.request_ids.length}<small>заявок</small></span></button>
+      <button type="button" className="team-card-head" onClick={() => onSelectTeam(active ? null : route.team_id)}><span className="team-color" /><div><strong>{team.name || `Бригада ${team.id}`}</strong><small>Участок: {sectionValue(team) || "не указан"}{team.district ? ` · Район: ${team.district}` : ""} · {formatClock(Number(team.shift_start?.split(":")[0]) * 60 + Number(team.shift_start?.split(":")[1]))}–{team.shift_end}</small></div><span className="team-card-total">{route.request_ids.length}<small>заявок</small></span></button>
       <div className="team-meta"><span>{team.transport || "Без транспорта"}</span>{team.skills.map((skill) => <span key={skill}>{skill}</span>)}{(team.equipment?.length ? team.equipment : ["Без спецоборудования"]).map((item) => <span key={item}>{item}</span>)}</div>
       <div className="route-overview"><span>Маршрут</span><strong>{formatDistance(route.distance_km)} км</strong>{changed && <em>изменён</em>}</div>
       <div className="route-timeline"><div className="office-stop"><span className="timeline-dot office" /><div><strong>Офис · {team.shift_start}</strong><small>Старт маршрута</small></div></div>{route.stops.map((stop, stopIndex) => {
