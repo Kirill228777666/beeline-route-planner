@@ -65,6 +65,16 @@ def test_cpp_respects_available_from_without_fallback():
     assert result.routes[0].schedule[0].start >= 800
 
 
+def test_cpp_does_not_use_an_unavailable_team():
+    from app.solver.modes import solve_by_mode
+    from app.solver.config import SolverConfig
+    p = small_problem()
+    p = replace(p, teams=(replace(p.teams[0], available=False),))
+    result = solve_by_mode("cpp", p, HaversineTravelMatrix(), SolverConfig(time_limit_ms=100, use_alns=False))
+    assert result.valid and result.solver_stats["engine"] == "cpp"
+    assert result.unassigned == [p.requests[0].id]
+
+
 def test_incremental_insertion_matches_independent_full_schedule():
     rng = random.Random(719)
     for trial in range(100):

@@ -47,7 +47,7 @@ class ExplainabilityService:
                 {"code": "TEAM_COMPATIBILITY", "passed": compatibility.allowed,
                  "reason_code": compatibility.reason.value},
                 {"code": "SKILL", "passed": (team.skills & request.required_skills) == request.required_skills},
-                {"code": "REGION", "passed": team.region_id == request.region_id},
+                {"code": "SECTION", "passed": team.section_id == request.section_id},
                 {"code": "TRANSPORT", "passed": not request.required_transport or team.transport == request.required_transport},
                 {"code": "EQUIPMENT", "passed": set(request.required_equipment).issubset(team.equipment)},
                 {"code": "TEAM_AVAILABLE", "passed": team.available},

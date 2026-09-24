@@ -1,3 +1,5 @@
+import pytest
+
 from app.constraints.engine import ConstraintEngine, RejectReason
 from app.domain.models import Request, RequestStatus, Skill, Team, Transport, WorkType
 
@@ -50,4 +52,25 @@ def test_same_section_allows_different_districts_but_other_section_does_not():
     assert job.section_id == "section_1"
     assert same_section.section_id == "section_1"
     assert ConstraintEngine().team_compatible(same_section, job).allowed
-    assert not ConstraintEngine().team_compatible(other_section, job).allowed
+    rejected = ConstraintEngine().team_compatible(other_section, job)
+    assert not rejected.allowed
+    assert rejected.message == "request and team belong to different sections"
+
+
+@pytest.mark.parametrize("transport", list(Transport))
+def test_each_supported_transport_is_a_hard_exact_match(transport):
+    job = Request(1, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "A", 55.75, 37.61,
+                  540, 600, 720, 30, Skill.REPAIR, required_transport=transport)
+    assert ConstraintEngine().team_compatible(team(transport=transport), job).allowed
+    other = next(item for item in Transport if item != transport)
+    assert ConstraintEngine().team_compatible(team(transport=other), job).reason == RejectReason.NO_TRANSPORT
+
+
+def test_equipment_is_a_hard_requirement():
+    router_job = Request(1, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "A", 55.75, 37.61,
+                         540, 600, 720, 30, Skill.REPAIR, required_equipment=("router",))
+    fiber_job = Request(2, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "B", 55.75, 37.61,
+                        540, 600, 720, 30, Skill.REPAIR, required_equipment=("fiber_tool",))
+    equipped_team = team(equipment=("router",))
+    assert ConstraintEngine().team_compatible(equipped_team, router_job).allowed
+    assert ConstraintEngine().team_compatible(equipped_team, fiber_job).reason == RejectReason.NO_EQUIPMENT

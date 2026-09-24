@@ -25,8 +25,8 @@ class ConstraintEngine:
     def team_compatible(self, team: Team, request: Request) -> Compatibility:
         if not team.available:
             return Compatibility(False, RejectReason.TEAM_UNAVAILABLE, "team is unavailable")
-        if team.region_id != request.region_id:
-            return Compatibility(False, RejectReason.WRONG_REGION, "request and team belong to different regions")
+        if team.section_id != request.section_id:
+            return Compatibility(False, RejectReason.WRONG_REGION, "request and team belong to different sections")
         if (team.skills & request.required_skills) != request.required_skills:
             return Compatibility(False, RejectReason.NO_SKILL, "required skill is missing")
         if request.required_transport and team.transport != request.required_transport:

@@ -96,3 +96,25 @@ def test_replanning_preserves_region_and_rejects_cross_region_emergency():
     assert next(request for request in captured["problem"].requests if request.id == 4).region_id == "zone_2"
     assert all(team.region_id == "zone_1" for team in captured["problem"].teams)
     assert 4 in result.plan.unassigned
+
+
+def test_in_progress_work_stays_first_before_new_emergency():
+    active = Request(1, "", "", WorkType.REPAIR, RequestStatus.IN_PROGRESS, 1, "", "A", 55.750, 37.610,
+                     600, 600, 900, 70, Skill.REPAIR)
+    problem = ProblemData(
+        (active,),
+        (Team(1, "T1", 55.750, 37.600, 600, 1000, Skill.REPAIR, Transport.CAR),),
+    )
+    old_plan = materialize_solution({1: [1]}, problem, HaversineTravelMatrix())
+    emergency = Request(2, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "B", 55.751, 37.611,
+                        650, 650, 900, 10, Skill.REPAIR)
+
+    result = ReplanningService(optimizer=lambda planning, travel, warm: Regret3Solver().solve(planning, travel)).replan(
+        problem, old_plan, 650, ReplanningEvent(ReplanningEventType.NEW_EMERGENCY, request=emergency))
+
+    route = next(route for route in result.plan.routes if route.team_id == 1)
+    stops = {stop.request_id: stop for stop in route.schedule}
+    assert result.verification.valid
+    assert route.request_ids == [1, 2]
+    assert stops[2].start >= 650
+    assert stops[2].start >= stops[1].finish
