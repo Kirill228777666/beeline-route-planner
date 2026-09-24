@@ -31,7 +31,7 @@ describe("App", () => {
         const payload = JSON.parse(String(init?.body));
         return jsonResponse(makePlan(payload.solver === "baseline" ? "baseline" : "optimized", payload.solver === "baseline" ? 2 : 1));
       }
-      if (url.includes("/explanation")) return jsonResponse({ request_id: 11, team_id: 10003, reason: "Бригада соответствует ограничениям.", arrival: "09:28", start: "09:28", finish: "10:48", hard_constraints: [{ code: "REGION", passed: true }], alternatives: [] });
+      if (url.includes("/explanation")) return jsonResponse({ request_id: 11, team_id: 10003, reason: "Бригада соответствует ограничениям.", arrival: "09:28", start: "09:28", finish: "10:48", hard_constraints: [{ code: "SECTION", passed: true }], alternatives: [] });
       return jsonResponse({}, 404);
     }));
   });
