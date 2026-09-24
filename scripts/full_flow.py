@@ -12,9 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.main import create_app
+from app.db.repositories import PlanRepository
 
 
-DATASET = ROOT / "frontend" / "public" / "datasets" / "zone_1.json"
+DATASET = ROOT / "frontend" / "public" / "datasets" / "demo_showcase.json"
 
 
 def main() -> None:
@@ -42,6 +43,11 @@ def main() -> None:
             assert optimize.status_code == 200, optimize.text
             parent = optimize.json()
             assert parent["verified"] is True
+            assert parent["unassigned_requests"] == []
+            with first_app.state.session_factory() as session:
+                stored = PlanRepository(session).get_plan(parent["plan_id"])
+                assert stored is not None
+                assert {item["section_id"] for item in stored.problem_payload["requests"]} == {"section_1", "section_2"}
 
             assigned_request_id = payload["requests"][0]["id"]
             explanation = client.get(
@@ -68,6 +74,10 @@ def main() -> None:
             child = child_response.json()
             assert child["verified"] is True
             assert child["parent_plan_id"] == parent["plan_id"]
+            with first_app.state.session_factory() as session:
+                stored = PlanRepository(session).get_plan(child["plan_id"])
+                assert stored is not None
+                assert {item["section_id"] for item in stored.problem_payload["requests"]} == {"section_1", "section_2"}
             diff = client.get(f"/api/plans/{child['plan_id']}/diff")
             assert diff.status_code == 200, diff.text
             child_id = child["plan_id"]

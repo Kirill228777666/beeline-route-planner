@@ -13,6 +13,7 @@ from app.constraints.verifier import verify_solution
 from app.domain.models import ProblemData, Request, RequestStatus, Skill, Team, Transport, WorkType
 from app.geo.travel import HaversineTravelMatrix
 from app.main import create_app
+from app.db.repositories import PlanRepository
 from app.solver.config import ROUTING_SOURCE, SOLVER_VERSION, SolverConfig
 from app.solver.modes import solve_by_mode
 
@@ -147,4 +148,58 @@ def test_plan_persistence_reload_and_replan():
             first_app.state.engine.dispose()
         if "second_app" in locals():
             second_app.state.engine.dispose()
+        database.unlink(missing_ok=True)
+
+
+def test_demo_showcase_section_survives_save_event_replan_and_restart():
+    database = Path(tempfile.gettempdir()) / "beeline_showcase_persistence_test.db"
+    database.unlink(missing_ok=True)
+    payload = json.loads((DATASETS / "demo_showcase.json").read_text(encoding="utf-8"))
+    config = fast_config(seed=91).to_dict()
+    try:
+        first_app = create_app(f"sqlite:///{database}")
+        with TestClient(first_app) as client:
+            created = client.post("/api/optimize", json={**payload, "solver": "cpp", "solver_config": config})
+            assert created.status_code == 200, created.text
+            parent = created.json()
+            assert parent["verified"] is True
+            assert parent["unassigned_requests"] == []
+            with first_app.state.session_factory() as session:
+                stored = PlanRepository(session).get_plan(parent["plan_id"])
+                assert stored is not None
+                assert {item["section_id"] for item in stored.problem_payload["requests"]} == {"section_1", "section_2"}
+
+            event = client.post(f"/api/plans/{parent['plan_id']}/events", json={
+                "event_type": "NEW_EMERGENCY", "event_time": "13:17",
+                "request": {"id": 9099, "address": "Демо, новая авария", "lat": 55.7515, "lon": 37.6115,
+                            "window_start": "13:17", "window_end": "18:00", "service_duration": 80,
+                            "work_type": "EMERGENCY", "required_skills": ["EMERGENCY"],
+                            "required_transport": "CAR", "required_equipment": ["router"],
+                            "section_id": "section_1", "district": "район А"},
+            })
+            assert event.status_code == 200, event.text
+            replanned = client.post(f"/api/plans/{parent['plan_id']}/replan", json={
+                "current_time": "13:17", "event_id": event.json()["event_id"],
+            })
+            assert replanned.status_code == 200, replanned.text
+            child = replanned.json()
+            assert child["verified"] is True
+            with first_app.state.session_factory() as session:
+                stored = PlanRepository(session).get_plan(child["plan_id"])
+                assert stored is not None
+                restored_request = next(item for item in stored.problem_payload["requests"] if item["id"] == 9099)
+                assert restored_request["section_id"] == "section_1"
+        first_app.state.engine.dispose()
+
+        restarted_app = create_app(f"sqlite:///{database}")
+        with TestClient(restarted_app) as client:
+            restored = client.get(f"/api/plans/{child['plan_id']}")
+            assert restored.status_code == 200, restored.text
+            assert restored.json()["verified"] is True
+        restarted_app.state.engine.dispose()
+    finally:
+        if "first_app" in locals():
+            first_app.state.engine.dispose()
+        if "restarted_app" in locals():
+            restarted_app.state.engine.dispose()
         database.unlink(missing_ok=True)

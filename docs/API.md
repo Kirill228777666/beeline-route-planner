@@ -6,7 +6,9 @@ Base URL: `http://127.0.0.1:8000`.
 
 `POST /api/optimize`
 
-Request body contains `requests`, `teams`, `solver` (`baseline` or `cpp`), and optional `solver_config`. Requests and teams carry `region_id`; assignment is allowed only when the two values are identical. Empty `region_id` is retained solely for legacy plans and matches only another empty value.
+Request body contains `requests`, `teams`, `solver` (`baseline` or `cpp`), and optional `solver_config`. `section_id` is the canonical operational field: an assignment is allowed only when request and team have the same section. `district` is informational and never blocks an assignment inside one section. `region_id` remains a supported legacy alias; if both are passed, non-empty `section_id` wins. Empty values match only empty values.
+
+Team input additionally supports `available` and `available_from`. An unavailable team is a hard-ineligible candidate and receives `TEAM_UNAVAILABLE` in an explanation.
 
 `service_duration` is accepted at the API boundary for input compatibility, but the backend normalizes it through the official catalogue: CONNECTION 70, EMERGENCY 80, ADD_ON 20, REPAIR 30 minutes. Travel is calculated separately.
 
@@ -20,7 +22,7 @@ The response contains `plan_id`, routes, unassigned requests, metrics, `verified
 - `GET /api/plans/{plan_id}/diff` — return changed assignments, times, routes, cancellations, and new requests.
 - `GET /api/plans/{plan_id}/requests/{request_id}/explanation` — deterministic assignment/constraint explanation.
 
-Replanning preserves `COMPLETED`, `IN_PROGRESS`, and `ON_THE_WAY` work, removes `CANCELLED` work, and returns not-yet-started work to the optimization pool. The response includes before/after metrics and `verified=true` for an accepted child plan.
+Replanning preserves `COMPLETED`, `IN_PROGRESS`, and `ON_THE_WAY` work, removes `CANCELLED` work, and returns not-yet-started work to the optimization pool. A new emergency receives `release_time=event_time`, is normalized to 80 minutes of onsite service, and cannot start before the event. The response includes before/after metrics and `verified=true` for an accepted child plan.
 
 ## Error contract
 

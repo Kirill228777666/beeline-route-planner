@@ -9,7 +9,7 @@ Final `v1.0.2` smoke benchmark, executed with `seed=42`, optimized C++ mode with
 | zone_3 | 56 | 43 | 11 | true | **56** | **7** | **true** |
 | combined | 205 | 168 | 35 | true | **205** | **24** | **true** |
 
-`combined` is now an official technical union of the three independent zones: each request and team retains `region_id`, every cross-region assignment is rejected, and the benchmark has `0` cross-region assignments. The earlier unrestricted `205/205, 20 teams` result is not a release benchmark because it used cross-region assignments. Zone 3 is fully assigned through the generic post-VND Regret repair. Distances are comparative because the release uses `haversine_synthetic` routing over anonymized coordinates.
+`combined` is now an official technical union of the three independent operational sections: each request and team retains its canonical `section_id` (stored as `region_id` in the legacy C++ payload), every cross-section assignment is rejected, and the benchmark has `0` cross-section assignments. The earlier unrestricted `205/205, 20 teams` result is not a release benchmark because it used cross-section assignments. Zone 3 is fully assigned through the generic post-VND Regret repair. Distances are comparative because the release uses `haversine_synthetic` routing over anonymized coordinates.
 
 | Dataset | Optimized travel | Optimized distance |
 |---|---:|---:|

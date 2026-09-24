@@ -12,6 +12,10 @@ SQLite is the default persistence layer. `backend/app/db/migrations.py` runs ide
 
 The Python layer owns domain models, importing, routing fallback, constraint verification, persistence, explainability, and replanning. The C++ module performs the optimization search. Python calls the independent verifier after every solver result; an unverified solution is never returned by the API.
 
+## Operational geography
+
+`section_id` is the business boundary for an operational section: a team may serve requests from several districts inside its section but cannot serve another section. `district` is stored and displayed as contextual data only. For release compatibility, persisted payloads and the Python-to-C++ adapter retain the physical `region_id` key; Python resolves `section_id` first and maps it into that legacy key before C++ compatibility checks. The C++ solver and its search operators are unchanged by this aliasing layer.
+
 ## Production path
 
 `start.ps1` is the only supported local launcher. It starts both processes and sets `PYTHONPATH`, `BEELINE_DATABASE_URL`, and `VITE_API_URL`. `build.ps1` is the only build entry point: it installs `requirements.lock`, builds the C++ extension, runs `npm ci`, and creates the frontend bundle.

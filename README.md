@@ -34,8 +34,8 @@ Backend: `http://127.0.0.1:8000`, frontend: `http://127.0.0.1:5173`. SQLite data
 .\.venv\Scripts\python.exe scripts\full_flow.py
 ```
 
-`full_flow.py` выполняет `optimize → save → explanation → event → replan → restart → restore` на dataset zone_1 и проверяет `verified=true` на каждом результате.
+`full_flow.py` выполняет `optimize → save → explanation → event → replan → restart → restore` на `demo_showcase` и проверяет `verified=true` на каждом результате.
 
-Версия solver: `cpp-solver-v1.0.2`. Routing source: `haversine_synthetic`; обезличенные адреса не подменяются псевдореальным OSRM расстоянием. `LOCAL` — квалификация (skill) из исходных данных, а не тип работы. Заявка может быть назначена только бригаде с тем же `region_id`.
+Версия solver: `cpp-solver-v1.0.2`. Routing source: `haversine_synthetic`; обезличенные адреса не подменяются псевдореальным OSRM расстоянием. `LOCAL` — квалификация (skill) из исходных данных, а не тип работы. Заявка может быть назначена только бригаде того же `section_id`; `region_id` поддерживается как legacy-алиас. Район хранится как информационное поле и не запрещает назначения внутри участка.
 
 Production path не содержит старых stage benchmark, audit snapshots, промежуточных бинарников, node_modules, dist или Python caches. Исторические материалы остаются в соседних каталогах `outputs/stage*` и `outputs/solver_audit` для сравнения.
