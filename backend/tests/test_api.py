@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
 
+from app.api.routes import _request_from_input, _team_from_input
+from app.api.schemas import RequestInput, TeamInput
 from app.main import create_app
 
 
@@ -54,6 +56,38 @@ def test_api_persists_region_constraint_and_explains_cross_region_rejection():
     explanation = client.get(f"/api/plans/{body['plan_id']}/requests/1/explanation")
     assert explanation.status_code == 200
     assert explanation.json()["alternatives"] == [{"team_id": 1, "rejected_reason": "WRONG_REGION"}]
+
+
+def test_canonical_section_takes_precedence_and_api_preserves_team_availability():
+    request = _request_from_input(RequestInput(
+        id=1, address="A", lat=55.75, lon=37.61, window_start="09:00", window_end="12:00",
+        service_duration=30, section_id="section_1", region_id="legacy_section",
+    ))
+    team = _team_from_input(TeamInput(
+        id=1, name="T", start_lat=55.75, start_lon=37.61, shift_start="09:00", shift_end="18:00",
+        skills=["REPAIR"], section_id="section_1", region_id="legacy_section",
+        district="district_b", available=False, available_from="10:30",
+    ))
+
+    assert request.section_id == "section_1"
+    assert team.section_id == "section_1"
+    assert team.district == "district_b"
+    assert team.available is False
+    assert team.available_from == 630
+
+
+def test_api_does_not_assign_an_unavailable_team():
+    client = TestClient(create_app())
+    response = client.post("/api/optimize", json={
+        "requests": [{"id": 1, "address": "A", "lat": 55.75, "lon": 37.61,
+                      "window_start": "09:00", "window_end": "12:00", "service_duration": 30,
+                      "work_type": "REPAIR", "required_skills": ["REPAIR"]}],
+        "teams": [{"id": 1, "name": "Unavailable", "start_lat": 55.75, "start_lon": 37.61,
+                   "shift_start": "09:00", "shift_end": "18:00", "skills": ["REPAIR"],
+                   "transport": "CAR", "available": False}],
+    })
+    assert response.status_code == 200
+    assert response.json()["unassigned_requests"] == [1]
 
 
 def test_replanning_api_13_17_preserves_completed_and_on_the_way():

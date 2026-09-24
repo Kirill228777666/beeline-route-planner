@@ -16,7 +16,9 @@ class RequestInput(BaseModel):
     required_skills: list[str] = []
     required_transport: str | None = None
     required_equipment: list[str] = []
+    section_id: str = ""
     region_id: str = ""
+    district: str = ""
 
 
 class TeamInput(BaseModel):
@@ -29,7 +31,11 @@ class TeamInput(BaseModel):
     skills: list[str]
     transport: str = "CAR"
     equipment: list[str] = []
+    section_id: str = ""
     region_id: str = ""
+    district: str = ""
+    available: bool = True
+    available_from: str | int | None = None
 
 
 class OptimizeInput(BaseModel):

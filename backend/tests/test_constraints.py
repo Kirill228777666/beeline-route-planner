@@ -39,3 +39,15 @@ def test_region_is_a_hard_constraint_and_blank_is_not_a_wildcard():
     assert ConstraintEngine().team_compatible(team(skills=Skill.EMERGENCY), request()).allowed
     assert not ConstraintEngine().team_compatible(
         team(skills=Skill.EMERGENCY, region_id="zone_1"), request()).allowed
+
+
+def test_same_section_allows_different_districts_but_other_section_does_not():
+    job = Request(1, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "district_a", "A", 55.75, 37.61,
+                  540, 600, 720, 30, Skill.REPAIR, region_id="section_1")
+    same_section = team(skills=Skill.REPAIR, region_id="section_1", district="district_b")
+    other_section = team(skills=Skill.REPAIR, region_id="section_2", district="district_a")
+
+    assert job.section_id == "section_1"
+    assert same_section.section_id == "section_1"
+    assert ConstraintEngine().team_compatible(same_section, job).allowed
+    assert not ConstraintEngine().team_compatible(other_section, job).allowed

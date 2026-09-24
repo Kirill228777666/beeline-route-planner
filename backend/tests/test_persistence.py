@@ -29,3 +29,22 @@ def test_legacy_plan_payload_without_region_restores_as_blank_to_blank_only():
     assert restored.requests[0].region_id == ""
     assert restored.teams[0].region_id == ""
     assert ConstraintEngine().team_compatible(restored.teams[0], restored.requests[0]).allowed
+
+
+def test_payload_restores_canonical_section_while_retaining_legacy_region_key():
+    problem = ProblemData(
+        (Request(1, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "district_a", "A", 55.75, 37.61,
+                 540, 540, 900, 30, Skill.REPAIR, region_id="section_1"),),
+        (Team(1, "T", 55.75, 37.60, 540, 900, Skill.REPAIR, Transport.CAR,
+              region_id="section_1", district="district_b"),),
+    )
+    payload = _problem_payload(problem)
+    payload["requests"][0]["section_id"] = "section_1"
+    payload["requests"][0]["region_id"] = "legacy_section"
+    payload["teams"][0]["section_id"] = "section_1"
+    payload["teams"][0]["region_id"] = "legacy_section"
+    restored = _problem_from_payload(payload)
+
+    assert restored.requests[0].section_id == "section_1"
+    assert restored.teams[0].section_id == "section_1"
+    assert restored.teams[0].district == "district_b"

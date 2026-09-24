@@ -26,6 +26,12 @@ def _explicit_skill(row: dict[str, str]) -> Skill | None:
     return result
 
 
+def _section_id(row: dict[str, str]) -> str:
+    return (row.get("section_id") or row.get("section") or row.get("участок") or row.get("Участок") or
+            row.get("region_id") or row.get("region") or row.get("office_id") or row.get("Регион") or
+            row.get("Офис") or "").strip()
+
+
 def parse_csv(stream: TextIOBase) -> ProblemData:
     sample = stream.read(4096)
     stream.seek(0)
@@ -48,7 +54,6 @@ def parse_csv(stream: TextIOBase) -> ProblemData:
             created_at=parse_minutes(row.get("Начало") or row.get("start") or "00:00"),
             window_start=parse_minutes(row.get("Начало") or row.get("start") or "00:00"), window_end=parse_minutes(row.get("Окончание") or row.get("end") or "23:59"),
             service_duration=service_duration_for(work_type), required_skills=skill,
-            region_id=(row.get("region_id") or row.get("region") or row.get("office_id") or
-                       row.get("Регион") or row.get("Офис") or "").strip(),
+            region_id=_section_id(row),
         ))
     return ProblemData(tuple(requests), ())

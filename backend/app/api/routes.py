@@ -28,6 +28,14 @@ def _skills(values: list[str]) -> Skill:
     return result
 
 
+def _section_id(item) -> str:
+    return (getattr(item, "section_id", "") or getattr(item, "region_id", "") or "").strip()
+
+
+def _payload_section_id(item: dict) -> str:
+    return (item.get("section_id") or item.get("region_id") or "").strip()
+
+
 def _request_from_input(item, status: RequestStatus = RequestStatus.NEW) -> Request:
     work_type = normalize_work_type(item.work_type)
     required_skills = _skills(item.required_skills) or default_skill_for(work_type)
@@ -35,19 +43,22 @@ def _request_from_input(item, status: RequestStatus = RequestStatus.NEW) -> Requ
     window_start = max(parse_minutes(item.window_start), release_time)
     return Request(id=item.id, source_bk="", source_hd="", work_type=work_type, status=status,
                    priority=priority_for(work_type),
-                   district="", address=item.address, lat=item.lat, lon=item.lon,
+                   district=item.district, address=item.address, lat=item.lat, lon=item.lon,
                    created_at=window_start, window_start=window_start,
                    window_end=parse_minutes(item.window_end), service_duration=service_duration_for(work_type),
                    required_skills=required_skills, release_time=release_time,
                    required_transport=Transport[item.required_transport] if item.required_transport else None,
-                   required_equipment=tuple(item.required_equipment), region_id=item.region_id)
+                   required_equipment=tuple(item.required_equipment), region_id=_section_id(item))
 
 
 def _team_from_input(item) -> Team:
+    shift_start = parse_minutes(item.shift_start)
     return Team(id=item.id, name=item.name, start_lat=item.start_lat, start_lon=item.start_lon,
-                shift_start=parse_minutes(item.shift_start), shift_end=parse_minutes(item.shift_end),
+                shift_start=shift_start, shift_end=parse_minutes(item.shift_end),
                 skills=_skills(item.skills), transport=Transport[item.transport], equipment=tuple(item.equipment),
-                region_id=item.region_id)
+                available=item.available,
+                available_from=parse_minutes(item.available_from) if item.available_from is not None else shift_start,
+                region_id=_section_id(item), district=item.district)
 
 
 def _problem_payload(problem: ProblemData) -> dict:
@@ -61,7 +72,7 @@ def _request_payload(request: Request) -> dict:
             "district": request.district, "address": request.address, "lat": request.lat, "lon": request.lon,
             "created_at": request.created_at, "window_start": request.window_start, "window_end": request.window_end,
             "service_duration": request.service_duration, "required_skills": int(request.required_skills),
-            "release_time": request.release_time, "region_id": request.region_id,
+            "release_time": request.release_time, "section_id": request.section_id, "region_id": request.region_id,
             "required_transport": request.required_transport.value if request.required_transport else None,
             "required_equipment": list(request.required_equipment), "gigabit": request.gigabit, "fmc": request.fmc}
 
@@ -71,7 +82,7 @@ def _team_payload(team: Team) -> dict:
             "shift_start": team.shift_start, "shift_end": team.shift_end, "skills": int(team.skills),
             "transport": team.transport.value, "equipment": list(team.equipment), "available": team.available,
             "available_from": team.available_from, "current_lat": team.current_lat, "current_lon": team.current_lon,
-            "region_id": team.region_id}
+            "section_id": team.section_id, "region_id": team.region_id, "district": team.district}
 
 
 def _problem_from_payload(payload: dict) -> ProblemData:
@@ -85,13 +96,13 @@ def _problem_from_payload(payload: dict) -> ProblemData:
                              required_transport=Transport(item["required_transport"]) if item.get("required_transport") else None,
                              required_equipment=tuple(item.get("required_equipment", ())), gigabit=item.get("gigabit", False),
                              fmc=item.get("fmc", False), release_time=item.get("release_time", 0),
-                             region_id=item.get("region_id", "")) for item in payload["requests"])
+                             region_id=_payload_section_id(item)) for item in payload["requests"])
     teams = tuple(Team(id=item["id"], name=item["name"], start_lat=item["start_lat"], start_lon=item["start_lon"],
                        shift_start=item["shift_start"], shift_end=item["shift_end"], skills=Skill(item["skills"]),
                        transport=Transport(item["transport"]), equipment=tuple(item.get("equipment", ())),
                        available=item.get("available", True), available_from=item.get("available_from", 0),
                        current_lat=item.get("current_lat"), current_lon=item.get("current_lon"),
-                       region_id=item.get("region_id", "")) for item in payload["teams"])
+                       region_id=_payload_section_id(item), district=item.get("district", "")) for item in payload["teams"])
     return ProblemData(requests, teams)
 
 

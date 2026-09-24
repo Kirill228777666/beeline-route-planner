@@ -59,6 +59,10 @@ class Request:
     release_time: int = 0
     region_id: str = ""
 
+    @property
+    def section_id(self) -> str:
+        return self.region_id
+
 
 @dataclass(frozen=True)
 class Team:
@@ -76,6 +80,11 @@ class Team:
     current_lat: float | None = None
     current_lon: float | None = None
     region_id: str = ""
+    district: str = ""
+
+    @property
+    def section_id(self) -> str:
+        return self.region_id
 
 
 @dataclass(frozen=True)
