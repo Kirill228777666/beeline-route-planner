@@ -1,3 +1,8 @@
+# HISTORICAL / SUPERSEDED — not current release
+
+This archived snapshot describes `v1.0.1`; it is not the current release.
+Use the root README and `FINAL_RELEASE_AUDIT.md` for `v1.0.2 FINAL` status.
+
 # Release snapshot v1.0.1
 
 Status: **FROZEN FOR DEFENSE**  

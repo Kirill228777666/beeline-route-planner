@@ -46,19 +46,18 @@ def verify_solution(problem: ProblemData, solution: Solution, travel) -> Verific
         schedule = calculate_schedule(team, route_requests, travel)
         if not schedule.valid:
             errors.append(schedule.error or f"invalid route {team.id}")
-        if route.schedule:
-            if len(route.schedule) != len(schedule.stops):
-                errors.append(f"schedule length mismatch for team {team.id}")
-            for actual, expected in zip(route.schedule, schedule.stops):
-                if any(getattr(actual, name) != getattr(expected, name) for name in
-                       ("request_id", "arrival", "start", "finish", "travel_time", "waiting")):
-                    errors.append(f"schedule mismatch for request {expected.request_id}")
-                if not isfinite(actual.travel_distance) or not isclose(actual.travel_distance, expected.travel_distance, abs_tol=1e-7):
-                    errors.append(f"distance mismatch for request {expected.request_id}")
-            if (route.total_travel_time != schedule.total_travel_time or
-                    not isfinite(route.total_distance) or
-                    not isclose(route.total_distance, schedule.total_distance, abs_tol=1e-7)):
-                errors.append(f"route metrics mismatch for team {team.id}")
+        if len(route.schedule) != len(schedule.stops):
+            errors.append(f"schedule length mismatch for team {team.id}")
+        for actual, expected in zip(route.schedule, schedule.stops):
+            if any(getattr(actual, name) != getattr(expected, name) for name in
+                   ("request_id", "arrival", "start", "finish", "travel_time", "waiting")):
+                errors.append(f"schedule mismatch for request {expected.request_id}")
+            if not isfinite(actual.travel_distance) or not isclose(actual.travel_distance, expected.travel_distance, abs_tol=1e-7):
+                errors.append(f"distance mismatch for request {expected.request_id}")
+        if (route.total_travel_time != schedule.total_travel_time or
+                not isfinite(route.total_distance) or
+                not isclose(route.total_distance, schedule.total_distance, abs_tol=1e-7)):
+            errors.append(f"route metrics mismatch for team {team.id}")
     all_ids = set(requests)
     if seen & set(solution.unassigned):
         errors.append("request is both assigned and unassigned")

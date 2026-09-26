@@ -1,4 +1,4 @@
-# C++ solver v1.0.0
+# C++ solver component — release v1.0.2
 
 The module is built from `src/cpp_solver.cpp` by `scripts/build_cpp_solver.py`.
 It contains Regret-3, VND, Route Elimination, ALNS, ejection/beam search,

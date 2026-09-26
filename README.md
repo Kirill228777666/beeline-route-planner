@@ -7,7 +7,6 @@
 Требуются Python 3.12+, Node.js 18+, npm, g++ с поддержкой C++20 и DLL runtime MSYS2 в `PATH`/DLL search path.
 
 ```powershell
-cd outputs/clean_project
 .\build.ps1
 ```
 
@@ -38,4 +37,4 @@ Backend: `http://127.0.0.1:8000`, frontend: `http://127.0.0.1:5173`. SQLite data
 
 Версия solver: `cpp-solver-v1.0.2`. Routing source: `haversine_synthetic`; обезличенные адреса не подменяются псевдореальным OSRM расстоянием. `LOCAL` — квалификация (skill) из исходных данных, а не тип работы. Заявка может быть назначена только бригаде того же `section_id`; `region_id` поддерживается как legacy-алиас. Район хранится как информационное поле и не запрещает назначения внутри участка.
 
-Production path не содержит старых stage benchmark, audit snapshots, промежуточных бинарников, node_modules, dist или Python caches. Исторические материалы остаются в соседних каталогах `outputs/stage*` и `outputs/solver_audit` для сравнения.
+Текущий релиз проекта — `v1.0.2 FINAL`. Исторические отчёты и snapshots явно помечены как superseded; актуальные проверенные показатели и ограничения приведены в `docs/BENCHMARKS.md` и `FINAL_RELEASE_AUDIT.md`.

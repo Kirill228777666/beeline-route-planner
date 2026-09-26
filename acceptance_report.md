@@ -1,3 +1,10 @@
+# HISTORICAL / SUPERSEDED — acceptance run from 2026-09-20
+
+This is the original v1.0.2 acceptance record, not the latest validation.
+Its test count and run-specific measurements are historical. See
+`FINAL_READINESS_REPORT.md` and `FINAL_RELEASE_AUDIT.md` for current release
+validation and benchmark sampling notes.
+
 # Final Acceptance Report — v1.0.2 FINAL
 
 Date: 2026-09-20  
