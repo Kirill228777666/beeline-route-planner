@@ -36,7 +36,7 @@ const baseline: Plan = {
   unassigned_requests: [],
 };
 
-const datasets: DatasetOption[] = [{ id: "zone_1", label: "zone_1 · 66 заявок", request_count: 66, team_count: 12, file: "/datasets/zone_1.json" }];
+const datasets: DatasetOption[] = [{ id: "zone_1", label: "Участок zone_1", file: "/datasets/zone_1.json" }];
 
 describe("PlanSummary", () => {
   it("shows coverage, verifier result, and finite comparison values", () => {
@@ -51,7 +51,7 @@ describe("PlanSummary", () => {
 describe("ControlBar", () => {
   it("identifies the active section and disables replanning in baseline mode", () => {
     const openEvent = vi.fn();
-    render(<ControlBar datasetId="zone_1" datasetName="Север" datasets={datasets} mode="baseline" loading={false} hasPlan onDatasetChange={vi.fn()} onFile={vi.fn()} onBuild={vi.fn()} onModeChange={vi.fn()} onOpenEvent={openEvent} />);
+    render(<ControlBar datasetId="zone_1" datasetName="Север" datasets={datasets} mode="baseline" loading={false} loadingStep="" hasPlan onDatasetChange={vi.fn()} onFile={vi.fn()} onBuild={vi.fn()} onModeChange={vi.fn()} onOpenEvent={openEvent} />);
     expect(screen.getByText("Участок: zone_1")).toBeInTheDocument();
     const eventButton = screen.getByRole("button", { name: "Событие в течение дня" });
     expect(eventButton).toBeDisabled();
@@ -65,9 +65,9 @@ describe("PlanHistory", () => {
     const child = { ...optimized, plan_id: "child", parent_plan_id: "parent", event_time: 797 };
     render(<PlanHistory before={baseline} after={child} diff={{ reassigned_request_ids: [10], time_changed_request_ids: [11], route_changed_team_ids: [10003], cancelled_request_ids: [], new_request_ids: [99] }} />);
     expect(screen.getByText("Исходный план")).toBeInTheDocument();
-    expect(screen.getByText("Перепланированный план")).toBeInTheDocument();
+    expect(screen.getByText("Новый план")).toBeInTheDocument();
     expect(screen.getByText("13:17")).toBeInTheDocument();
-    expect(screen.getByText("В пути 0 → 417 мин")).toBeInTheDocument();
+    expect(screen.getByText("Время в пути 0 → 417 мин")).toBeInTheDocument();
     expect(screen.getByText("Пробег 0 → 207,6 км")).toBeInTheDocument();
     expect(screen.getByText("Маршрутов изменено: 1")).toBeInTheDocument();
   });

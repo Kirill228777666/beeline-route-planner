@@ -3,21 +3,20 @@ import { useEffect, useMemo, useState } from "react";
 import { createPlanEvent, getExplanation, getPlanDiff, loadBundledDataset, optimize, replan } from "./api";
 import { ControlBar } from "./components/ControlBar";
 import { EventDialog, type EventSubmission } from "./components/EventDialog";
+import { OperationsPanel } from "./components/OperationsPanel";
 import { PlanHistory } from "./components/PlanHistory";
 import { PlanSummary } from "./components/PlanSummary";
 import { RequestDrawer } from "./components/RequestDrawer";
 import { RouteMap } from "./components/RouteMap";
-import { TeamsPanel } from "./components/TeamsPanel";
-import { UnassignedSection } from "./components/UnassignedSection";
-import { metricNumber, validateDataset } from "./lib/presentation";
+import { metricNumber, sectionValue, validateDataset } from "./lib/presentation";
 import type { Dataset, DatasetOption, Explanation, Plan, PlanDiff, RequestStatus, SolverViewMode } from "./types";
 
 const datasets: DatasetOption[] = [
-  { id: "zone_1", label: "zone_1 · 66 заявок", request_count: 66, team_count: 12, file: "/datasets/zone_1.json" },
-  { id: "zone_2", label: "zone_2 · 83 заявки", request_count: 83, team_count: 12, file: "/datasets/zone_2.json" },
-  { id: "zone_3", label: "zone_3 · 56 заявок", request_count: 56, team_count: 11, file: "/datasets/zone_3.json" },
-  { id: "combined", label: "combined · 205 заявок", request_count: 205, team_count: 35, file: "/datasets/combined.json" },
-  { id: "demo_showcase", label: "demo_showcase · бизнес-ограничения", request_count: 5, team_count: 4, file: "/datasets/demo_showcase.json" },
+  { id: "zone_1", label: "Участок zone_1", file: "/datasets/zone_1.json" },
+  { id: "zone_2", label: "Участок zone_2", file: "/datasets/zone_2.json" },
+  { id: "zone_3", label: "Участок zone_3", file: "/datasets/zone_3.json" },
+  { id: "combined", label: "Объединённый набор", file: "/datasets/combined.json" },
+  { id: "demo_showcase", label: "Демонстрация ограничений", file: "/datasets/demo_showcase.json" },
 ];
 
 const emptyDataset: Dataset = { name: "Загрузка…", requests: [], teams: [] };
@@ -32,6 +31,7 @@ function App() {
   const [previousPlan, setPreviousPlan] = useState<Plan | null>(null);
   const [diff, setDiff] = useState<PlanDiff>(emptyDiff());
   const [statuses, setStatuses] = useState<Record<number, RequestStatus>>({});
+  const [selectedMapSectionId, setSelectedMapSectionId] = useState<string | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
   const [explanation, setExplanation] = useState<Explanation | null>(null);
@@ -39,11 +39,15 @@ function App() {
   const [explanationError, setExplanationError] = useState("");
   const [eventOpen, setEventOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("");
   const [error, setError] = useState("");
 
   const activePlan = mode === "optimized" ? optimizedPlan : baselinePlan;
   const requestMap = useMemo(() => new Map(dataset.requests.map((request) => [request.id, request])), [dataset.requests]);
   const teamMap = useMemo(() => new Map(dataset.teams.map((team) => [team.id, team])), [dataset.teams]);
+  const assignedRequestIds = useMemo(() => new Set(activePlan?.routes.flatMap((route) => route.request_ids) ?? []), [activePlan]);
+  const requestsInActivePlan = useMemo(() => new Set([...(activePlan?.routes.flatMap((route) => route.request_ids) ?? []), ...(activePlan?.unassigned_requests ?? [])]), [activePlan]);
+  const activeRequestCount = activePlan ? metricNumber(activePlan.metrics, "assigned") + metricNumber(activePlan.metrics, "unassigned", activePlan.unassigned_requests.length) : 0;
   const selectedAssignment = useMemo(() => {
     if (!activePlan || selectedRequestId === null) return null;
     for (const route of activePlan.routes) {
@@ -59,9 +63,11 @@ function App() {
     setPreviousPlan(null);
     setDiff(emptyDiff());
     setStatuses({});
+    setSelectedMapSectionId(null);
     setSelectedTeamId(null);
     setSelectedRequestId(null);
     setExplanation(null);
+    setExplanationError("");
     setMode("optimized");
   }
 
@@ -69,6 +75,7 @@ function App() {
     const option = datasets.find((item) => item.id === id);
     if (!option) return;
     setLoading(true);
+    setLoadingStep("Загружаем набор данных");
     setError("");
     try {
       const loaded = validateDataset(await loadBundledDataset(option.file));
@@ -79,45 +86,54 @@ function App() {
       setError(cause instanceof Error ? cause.message : `Не удалось загрузить ${id}`);
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   }
 
-  useEffect(() => {
-    void loadDataset("zone_1");
-  }, []);
+  useEffect(() => { void loadDataset("zone_1"); }, []);
 
   async function buildPlans() {
-    if (!dataset.requests.length || !dataset.teams.length) {
-      setError("Dataset должен содержать заявки и бригады");
-      return;
-    }
     setLoading(true);
     setError("");
     setSelectedRequestId(null);
     setExplanation(null);
     try {
-      const [baseline, optimized] = await Promise.all([optimize(dataset, "baseline"), optimize(dataset, "cpp")]);
+      setLoadingStep("Проверяем данные");
+      const checkedDataset = validateDataset(dataset);
+      if (!checkedDataset.requests.length || !checkedDataset.teams.length) throw new Error("Dataset должен содержать заявки и бригады");
+      setLoadingStep("Строим baseline");
+      const baseline = await optimize(checkedDataset, "baseline");
+      setLoadingStep("Оптимизируем маршруты");
+      const optimized = await optimize(checkedDataset, "cpp");
+      setLoadingStep("Проверяем результаты");
       setBaselinePlan(baseline);
       setOptimizedPlan(optimized);
       setPreviousPlan(null);
       setDiff(emptyDiff());
       setMode("optimized");
-      setStatuses(Object.fromEntries(dataset.requests.map((request) => [request.id, "NEW"])) as Record<number, RequestStatus>);
+      setStatuses(Object.fromEntries(checkedDataset.requests.map((request) => [request.id, request.status ?? "NEW"])) as Record<number, RequestStatus>);
+      setSelectedMapSectionId(null);
+      setSelectedTeamId(null);
+      setSelectedRequestId(null);
+      setExplanation(null);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Не удалось построить планы");
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   }
 
   async function selectRequest(requestId: number) {
     if (!activePlan) return;
     setSelectedRequestId(requestId);
+    const request = requestMap.get(requestId);
+    if (request && sectionValue(request)) setSelectedMapSectionId(sectionValue(request));
     setExplanation(null);
     setExplanationError("");
     setExplanationLoading(true);
     const route = activePlan.routes.find((item) => item.request_ids.includes(requestId));
-    if (route) setSelectedTeamId(route.team_id);
+    setSelectedTeamId(route?.team_id ?? null);
     try {
       setExplanation(await getExplanation(activePlan.plan_id, requestId));
     } catch (cause) {
@@ -127,10 +143,41 @@ function App() {
     }
   }
 
+  function clearSelectedRequest() {
+    setSelectedRequestId(null);
+    setExplanation(null);
+    setExplanationError("");
+  }
+
+  function selectTeam(teamId: number | null) {
+    if (teamId !== null) {
+      const team = teamMap.get(teamId);
+      if (team && sectionValue(team)) setSelectedMapSectionId(sectionValue(team));
+      if (selectedRequestId !== null) {
+        const requestRoute = activePlan?.routes.find((route) => route.request_ids.includes(selectedRequestId));
+        if (requestRoute?.team_id !== teamId) clearSelectedRequest();
+      }
+    }
+    setSelectedTeamId(teamId);
+  }
+
+  function selectMapSection(sectionId: string | null) {
+    setSelectedMapSectionId(sectionId);
+    if (sectionId === null) {
+      setSelectedTeamId(null);
+      clearSelectedRequest();
+      return;
+    }
+    const focusedTeam = selectedTeamId === null ? undefined : teamMap.get(selectedTeamId);
+    if (focusedTeam && sectionValue(focusedTeam) !== sectionId) setSelectedTeamId(null);
+    const focusedRequest = selectedRequestId === null ? undefined : requestMap.get(selectedRequestId);
+    if (focusedRequest && sectionValue(focusedRequest) !== sectionId) clearSelectedRequest();
+  }
+
   function switchMode(nextMode: SolverViewMode) {
-    if (nextMode === "optimized" && !optimizedPlan) return;
-    if (nextMode === "baseline" && !baselinePlan) return;
+    if ((nextMode === "optimized" && !optimizedPlan) || (nextMode === "baseline" && !baselinePlan)) return;
     setMode(nextMode);
+    setSelectedMapSectionId(null);
     setSelectedRequestId(null);
     setSelectedTeamId(null);
     setExplanation(null);
@@ -150,12 +197,14 @@ function App() {
   }
 
   async function submitEvent(submission: EventSubmission) {
-    if (!optimizedPlan) return;
+    if (!optimizedPlan || loading) return;
     setLoading(true);
     setError("");
     try {
       const parent = optimizedPlan;
+      setLoadingStep("Сохраняем событие для текущего плана");
       const event = await createPlanEvent(parent.plan_id, submission.payload);
+      setLoadingStep("Перепланируем будущие заявки");
       const child = await replan(parent.plan_id, event.event_id, submission.eventTime);
       let childDiff = child.diff ?? emptyDiff();
       try {
@@ -176,6 +225,8 @@ function App() {
       setEventOpen(false);
       setSelectedTeamId(null);
       setSelectedRequestId(submission.focusRequestId);
+      const changedRequest = submission.newRequest ?? requestMap.get(submission.focusRequestId);
+      setSelectedMapSectionId(changedRequest ? sectionValue(changedRequest) || null : null);
       setExplanation(null);
       setExplanationError("");
       setExplanationLoading(true);
@@ -190,22 +241,30 @@ function App() {
       setError(cause instanceof Error ? cause.message : "Не удалось перепланировать день");
     } finally {
       setLoading(false);
+      setLoadingStep("");
     }
   }
 
+  const currentName = datasetId === "combined" ? "Комбинированный набор" : datasetId === "custom" ? dataset.name : `Участок ${datasetId}`;
+  const activeRequest = selectedRequestId === null ? undefined : requestMap.get(selectedRequestId);
+  const selectedRequestStatus = selectedRequestId === null ? "NEW" : statuses[selectedRequestId] ?? activeRequest?.status ?? (assignedRequestIds.has(selectedRequestId) ? "ASSIGNED" : "NEW");
+
   return <div className="app-shell">
-    <ControlBar datasetId={datasetId} datasetName={dataset.name} datasets={datasets} mode={mode} loading={loading} hasPlan={Boolean(activePlan)} onDatasetChange={(id) => void loadDataset(id)} onFile={(file) => void loadFile(file)} onBuild={() => void buildPlans()} onModeChange={switchMode} onOpenEvent={() => setEventOpen(true)} />
+    <ControlBar datasetId={datasetId} datasetName={currentName} datasets={datasets} mode={mode} loading={loading} loadingStep={loadingStep} hasPlan={Boolean(activePlan)} onDatasetChange={(id) => void loadDataset(id)} onFile={(file) => void loadFile(file)} onBuild={() => void buildPlans()} onModeChange={switchMode} onOpenEvent={() => setEventOpen(true)} />
+    {loading && <div className="loading-status" role="status"><span className="spinner" />{loadingStep || "Выполняется операция"}</div>}
     <main className="dashboard-main">
-      {error && <div className="global-error"><span>!</span><div><strong>Операция не выполнена</strong><p>{error}</p></div><button type="button" aria-label="Закрыть ошибку" onClick={() => setError("")}>×</button></div>}
-      {!activePlan ? <section className="dashboard-empty"><div className="empty-graphic"><span>1</span><span>2</span><span>3</span><svg viewBox="0 0 300 100"><path d="M18 74 C82 6 120 90 188 28 S260 48 284 16" /></svg></div><span className="section-kicker">ГОТОВО К РАСЧЁТУ</span><h1>Постройте план выездов на сегодня</h1><p>Выберите участок или загрузите JSON. Система одновременно рассчитает baseline и оптимизированный план, затем проверит все ограничения.</p><button type="button" className="build-button" disabled={loading || !dataset.requests.length} onClick={() => void buildPlans()}>{loading ? "Загружаем данные…" : "Построить план"}</button><div className="empty-features"><span>✓ Skills</span><span>✓ Time windows</span><span>✓ Sections</span><span>✓ Python verifier</span></div></section> : <>
-        <PlanSummary plan={activePlan} baseline={previousPlan ? null : baselinePlan} datasetSize={dataset.requests.length} mode={mode} />
-        {previousPlan && mode === "optimized" && <PlanHistory before={previousPlan} after={activePlan} diff={diff} />}
-        <section className="operations-grid"><RouteMap dataset={dataset} plan={activePlan} selectedTeamId={selectedTeamId} selectedRequestId={selectedRequestId} onSelectTeam={setSelectedTeamId} onSelectRequest={(id) => void selectRequest(id)} /><TeamsPanel dataset={dataset} plan={activePlan} selectedTeamId={selectedTeamId} selectedRequestId={selectedRequestId} statuses={statuses} diff={mode === "optimized" ? diff : null} onSelectTeam={setSelectedTeamId} onSelectRequest={(id) => void selectRequest(id)} /></section>
-        <UnassignedSection dataset={dataset} plan={activePlan} onSelect={(id) => void selectRequest(id)} />
-        <footer className="dashboard-footer"><span>Solver: {activePlan.solver_version || String(activePlan.metrics.solver_engine ?? (mode === "optimized" ? "C++ v1.0.2" : "baseline-v1"))}</span><span>Routing: {activePlan.routing_source || "Haversine synthetic"}</span><span className={activePlan.verified ? "footer-ok" : "footer-fail"}>{activePlan.verified ? `${metricNumber(activePlan.metrics, "assigned", dataset.requests.length - activePlan.unassigned_requests.length)}/${dataset.requests.length} feasible · verifier OK` : "Verifier failed"}</span></footer>
+      {error && <div className="global-error" role="alert"><span>!</span><div><strong>Операция не выполнена</strong><p>{error}</p></div><button type="button" aria-label="Закрыть ошибку" onClick={() => setError("")}>×</button></div>}
+      {!activePlan ? <section className="dashboard-empty"><div className="empty-graphic"><span>1</span><span>2</span><span>3</span><svg viewBox="0 0 300 100"><path d="M18 74 C82 6 120 90 188 28 S260 48 284 16" /></svg></div><span className="section-kicker">ГОТОВО К РАСЧЁТУ</span><h1>Постройте план выездов на сегодня</h1><p>Выберите участок или загрузите JSON. Backend рассчитает базовый и оптимизированный планы, затем проверит ограничения.</p><button type="button" className="build-button" disabled={loading || !dataset.requests.length} onClick={() => void buildPlans()}>{loading ? loadingStep || "Загрузка…" : "Построить план"}</button><div className="empty-features"><span>Skills</span><span>Транспорт</span><span>Оборудование</span><span>Python verifier</span></div></section> : <>
+        <PlanSummary plan={activePlan} baseline={baselinePlan} comparisonPlan={optimizedPlan} datasetSize={dataset.requests.length} mode={mode} />
+        {previousPlan && mode === "optimized" && <PlanHistory before={previousPlan} after={activePlan} diff={diff} statuses={statuses} />}
+        <section className="operations-grid" aria-label="Оперативная обстановка">
+          <RouteMap dataset={dataset} plan={activePlan} selectedSectionId={selectedMapSectionId} selectedTeamId={selectedTeamId} selectedRequestId={selectedRequestId} onSelectTeam={selectTeam} onSelectRequest={(id) => id === null ? clearSelectedRequest() : void selectRequest(id)} onSectionChange={selectMapSection} />
+          <OperationsPanel dataset={dataset} plan={activePlan} selectedTeamId={selectedTeamId} selectedRequestId={selectedRequestId} statuses={statuses} diff={mode === "optimized" ? diff : null} onSelectTeam={selectTeam} onSelectRequest={(id) => void selectRequest(id)} />
+        </section>
+        <footer className="dashboard-footer"><span>Solver: {activePlan.solver_version || String(activePlan.metrics.solver_engine ?? (mode === "optimized" ? "C++" : "baseline"))}</span><span>Маршрутизация: {activePlan.routing_source || "Синтетические координаты / Haversine"}</span><span className={activePlan.verified ? "footer-ok" : "footer-fail"}>{activePlan.verified ? `${metricNumber(activePlan.metrics, "assigned")}/${activeRequestCount} назначено · независимая проверка Python пройдена` : "Проверка verifier не пройдена — план не подтверждён"}</span></footer>
       </>}
     </main>
-    {selectedRequestId !== null && activePlan && <RequestDrawer request={requestMap.get(selectedRequestId)} stop={selectedAssignment?.stop} team={selectedAssignment?.team} explanation={explanation} loading={explanationLoading} error={explanationError} onClose={() => { setSelectedRequestId(null); setExplanation(null); setExplanationError(""); }} />}
+    {selectedRequestId !== null && activePlan && <RequestDrawer request={activeRequest} stop={selectedAssignment?.stop} team={selectedAssignment?.team} explanation={explanation} loading={explanationLoading} error={explanationError} assigned={assignedRequestIds.has(selectedRequestId)} includedInPlan={requestsInActivePlan.has(selectedRequestId)} status={selectedRequestStatus === "NEW" && assignedRequestIds.has(selectedRequestId) ? "ASSIGNED" : selectedRequestStatus} onRetry={() => void selectRequest(selectedRequestId)} onClose={clearSelectedRequest} />}
     {eventOpen && optimizedPlan && <EventDialog dataset={dataset} selectedRequestId={selectedRequestId} loading={loading} onClose={() => setEventOpen(false)} onSubmit={(submission) => void submitEvent(submission)} />}
   </div>;
 }

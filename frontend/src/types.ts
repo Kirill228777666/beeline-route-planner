@@ -14,6 +14,7 @@ export type RequestInput = {
   region_id?: string;
   district?: string;
   release_time?: string | number | null;
+  status?: RequestStatus;
 };
 
 export type TeamInput = {
@@ -44,8 +45,6 @@ export type Dataset = {
 export type DatasetOption = {
   id: string;
   label: string;
-  request_count: number;
-  team_count: number;
   file: string;
 };
 

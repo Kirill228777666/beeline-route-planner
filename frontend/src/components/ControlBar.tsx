@@ -8,6 +8,7 @@ type ControlBarProps = {
   datasets: DatasetOption[];
   mode: SolverViewMode;
   loading: boolean;
+  loadingStep: string;
   hasPlan: boolean;
   onDatasetChange: (id: string) => void;
   onFile: (file: File) => void;
@@ -16,7 +17,7 @@ type ControlBarProps = {
   onOpenEvent: () => void;
 };
 
-export function ControlBar({ datasetId, datasetName, datasets, mode, loading, hasPlan, onDatasetChange, onFile, onBuild, onModeChange, onOpenEvent }: ControlBarProps) {
+export function ControlBar({ datasetId, datasetName, datasets, mode, loading, loadingStep, hasPlan, onDatasetChange, onFile, onBuild, onModeChange, onOpenEvent }: ControlBarProps) {
   function handleFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (file) onFile(file);
@@ -28,11 +29,11 @@ export function ControlBar({ datasetId, datasetName, datasets, mode, loading, ha
       <div className="brand-symbol" aria-hidden="true"><span /><span /><span /><span /><span /></div>
       <div><span className="brand-caption">BEELINE BUSINESS</span><strong>Маршрутизация бригад</strong></div>
     </div>
-    <div className="district-chip"><span>Активный участок</span><strong>Участок: {datasetId === "custom" ? datasetName : datasetId}</strong></div>
+    <div className="district-chip"><span>Текущий набор</span><strong>{datasetId === "custom" || datasetId === "combined" ? datasetName : `Участок: ${datasetId}`}</strong></div>
     <div className="control-actions">
-      <label className="field-control dataset-control"><span>Набор данных</span><select aria-label="Набор данных" value={datasetId} onChange={(event) => onDatasetChange(event.target.value)}>{datasets.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.label}</option>)}{datasetId === "custom" && <option value="custom">{datasetName}</option>}</select></label>
-      <label className="upload-button">Загрузить JSON<input type="file" accept="application/json,.json" onChange={handleFile} /></label>
-      <button type="button" className="build-button" onClick={onBuild} disabled={loading}>{loading ? <><span className="spinner" />Расчёт…</> : <>Построить план <span aria-hidden="true">→</span></>}</button>
+      <label className="field-control dataset-control"><span>Набор данных</span><select aria-label="Набор данных" disabled={loading} value={datasetId} onChange={(event) => onDatasetChange(event.target.value)}>{datasets.map((dataset) => <option key={dataset.id} value={dataset.id}>{dataset.label}</option>)}{datasetId === "custom" && <option value="custom">{datasetName}</option>}</select></label>
+      <label className={`upload-button ${loading ? "disabled" : ""}`}>Загрузить JSON<input type="file" accept="application/json,.json" disabled={loading} onChange={handleFile} /></label>
+      <button type="button" className="build-button" onClick={onBuild} disabled={loading}>{loading ? <><span className="spinner" />{loadingStep || "Выполняется…"}</> : <>Построить план <span aria-hidden="true">→</span></>}</button>
     </div>
     <div className="mode-actions">
       <div className="mode-switch" aria-label="Режим плана">
