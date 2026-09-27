@@ -88,7 +88,67 @@ describe("RouteMap", () => {
     expect(container.querySelectorAll('[data-map-item="route"]')).toHaveLength(1);
     expect(container.querySelectorAll('[data-map-item="team"]')).toHaveLength(1);
     expect(screen.getByText("Участок zone_1 · 2 заявки · 1 бригада")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Заявка 21" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Заявка 23" })).not.toBeInTheDocument();
+  });
+
+  it("shows used teams from the active plan, not all teams in the selected section", () => {
+    const requests = Array.from({ length: 7 }, (_, index) => ({
+      ...sectionDataset.requests[0],
+      id: 301 + index,
+      address: `Заявка ${index + 1}`,
+      district: index % 2 ? "Район Б" : "Район А",
+    }));
+    const teams = Array.from({ length: 8 }, (_, index) => ({
+      ...sectionDataset.teams[0],
+      id: 501 + index,
+      name: `Бригада ${501 + index}`,
+    }));
+    const zone1Plan: Plan = {
+      plan_id: "zone-1-seven-teams",
+      verified: true,
+      metrics: { assigned: 7, unassigned: 0, used_teams: 7 },
+      routes: Array.from({ length: 7 }, (_, index) => ({
+        team_id: 501 + index,
+        request_ids: [301 + index],
+        distance_km: 1,
+        stops: [{ request_id: 301 + index, arrival: 568, start: 568, finish: 598, travel_time: 10, travel_distance: 1, waiting: 0 }],
+      })),
+      unassigned_requests: [],
+    };
+
+    render(<RouteMap dataset={{ name: "zone_1", requests, teams }} plan={zone1Plan} selectedSectionId="zone_1" selectedTeamId={null} selectedRequestId={null} onSelectTeam={vi.fn()} onSelectRequest={vi.fn()} onSectionChange={vi.fn()} />);
+
+    expect(screen.getByText("Участок zone_1 · 7 заявок · 7 бригад")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Офис бригады/ })).toHaveLength(7);
+  });
+
+  it("clears team and request focus without clearing the selected section", () => {
+    const onSelectTeam = vi.fn();
+    const onSelectRequest = vi.fn();
+    const onSectionChange = vi.fn();
+    render(<RouteMap dataset={sectionDataset} plan={sectionPlan} selectedSectionId="zone_1" selectedTeamId={101} selectedRequestId={21} onSelectTeam={onSelectTeam} onSelectRequest={onSelectRequest} onSectionChange={onSectionChange} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Все маршруты" }));
+
+    expect(onSelectTeam).toHaveBeenCalledWith(null);
+    expect(onSelectRequest).toHaveBeenCalledWith(null);
+    expect(onSectionChange).not.toHaveBeenCalled();
+  });
+
+  it("starts with routes visible and preserves a manual routes toggle across plan updates", () => {
+    const props = { dataset: sectionDataset, plan: sectionPlan, selectedSectionId: null, selectedTeamId: null, selectedRequestId: null, onSelectTeam: vi.fn(), onSelectRequest: vi.fn(), onSectionChange: vi.fn() };
+    const { rerender } = render(<RouteMap {...props} />);
+    const routesCheckbox = screen.getByRole("checkbox", { name: "Маршруты" });
+
+    expect(routesCheckbox).toBeChecked();
+    fireEvent.click(routesCheckbox);
+    expect(routesCheckbox).not.toBeChecked();
+
+    rerender(<RouteMap {...props} plan={{ ...sectionPlan, plan_id: "next-plan" }} />);
+
+    expect(screen.getByRole("checkbox", { name: "Маршруты" })).not.toBeChecked();
   });
 
   it("focuses the selected team route and retains the selected request focus", () => {

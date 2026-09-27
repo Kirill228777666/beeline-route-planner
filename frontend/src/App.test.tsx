@@ -85,6 +85,7 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Увеличить карту" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Уменьшить карту" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Сбросить масштаб карты" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Маршруты" })).toBeChecked();
     const svg = screen.getByRole("img", { name: "Схематическая карта маршрутов бригад" });
     expect(svg).toHaveAttribute("viewBox", "0 0 1000 620");
     fireEvent.click(screen.getByRole("button", { name: "Увеличить карту" }));
@@ -110,7 +111,7 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Закрыть карточку" }));
     expect(screen.getByText("Бригада 10003 · 1 заявка · 8,2 км")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Все маршруты" }));
-    expect(screen.getByText("Все участки · 1 заявка · 1 бригада")).toBeInTheDocument();
+    expect(screen.getByText("Участок zone_1 · 1 заявка · 1 бригада")).toBeInTheDocument();
   });
 
   it("clears a team and request focus when switching to another section", async () => {
@@ -157,6 +158,11 @@ describe("App", () => {
     expect(within(map).getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
 
     fireEvent.click(within(map).getByRole("button", { name: "Все маршруты" }));
+    expect(screen.getByText("Участок zone_2 · 1 заявка · 1 бригада")).toBeInTheDocument();
+    expect(within(map).getAllByRole("button", { name: /^Заявка/ })).toHaveLength(1);
+    expect(within(map).getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
+
+    fireEvent.click(within(map).getByRole("button", { name: "Все" }));
     expect(screen.getByText("Все участки · 2 заявки · 2 бригады")).toBeInTheDocument();
     expect(within(map).getAllByRole("button", { name: /^Заявка/ })).toHaveLength(2);
   });

@@ -156,7 +156,8 @@ export function RouteMap({ dataset, plan, selectedSectionId, selectedTeamId, sel
   }
 
   function showAllRoutes() {
-    chooseSection(null);
+    onSelectTeam(null);
+    onSelectRequest(null);
   }
 
   const focusTitle = isRequestFocus
