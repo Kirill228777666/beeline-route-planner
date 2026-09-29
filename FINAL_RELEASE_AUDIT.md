@@ -6,6 +6,7 @@ Audited branch: `main`
 Baseline commit: `e9a09f7f7cb8a0057088852833a795eadbfe7ada`
 
 Audited implementation/documentation commit: `82c69df` (`Prepare final release docs and hardening`; this SHA is recorded in a documentation-only follow-up commit).
+GitHub publication: `origin/main` push completed on 2026-09-29; audit metadata commit: `4cd65ce`.
 Project version: `v1.0.2 FINAL` (version string unchanged)
 Status: **PARTIAL — fixes and verification are complete for the checked paths; several release gates below remain unverified.**
 
@@ -81,6 +82,7 @@ The current sample found 23 teams for combined; this is a result of this particu
 - Browser inspected the actual combined plan: 205/205, 23 teams, 1,208 travel minutes, 601.7 km, compact verified indicator, Leaflet map/OSM attribution, actual route and stop data, request drawer and backend explanation. A separate zone_1 browser view showed 66/66 and 7 teams. Map selection/filter behavior is also covered by frontend tests.
 - Ctrl+C stopped both started backend/frontend process trees on both runs; ports 8000/5173 became free and no matching project server processes remained. A separate pre-existing Vite process from `Documents\beeline-route-planner` was identified and deliberately not touched.
 - `git diff --check`: clean after the final documentation edits.
+- GitHub: pushed to `origin/main`; current submission URL is `https://github.com/Kirill228777666/beeline-route-planner`.
 
 ## Known limitations and remaining gates
 
@@ -94,4 +96,4 @@ Historical acceptance and release snapshot files remain in the repository and ar
 
 ## Final gate
 
-**PARTIAL.** The code-level regressions, backend/C++ and frontend suites, production build, `build.ps1`, five live dataset optimizations, verifier, live emergency/replan/restore flow, `full_flow.py` restart flow, repeated production-preview startup/shutdown, documentation-link checks, and final diff check passed. The full manual browser acceptance matrix and every status case as a separate external-process restart/restore scenario were not completed. GitHub publication is being completed at the user's request, but it does not turn those uncompleted acceptance checks into a PASS. Do not interpret this report as a claim that every item in the requested acceptance matrix has passed.
+**PARTIAL.** Backend/C++ and frontend suites, production build, `build.ps1`, five live dataset optimizations, verifier, emergency/replan/restore flow, `full_flow.py`, repeated production-preview startup/shutdown, documentation-link checks, and final diff check passed. README and supporting documentation are release-ready and the repository is published to `origin/main`. The full manual browser acceptance matrix and every status case as a separate external-process restart/restore scenario were not completed, so overall acceptance remains **PARTIAL**, not PASS.

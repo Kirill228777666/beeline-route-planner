@@ -20,6 +20,8 @@ Repository: <https://github.com/Kirill228777666/beeline-route-planner> · branch
 | Live API datasets | baseline and C++ mode called for all five bundled datasets; all responses verified |
 | Cross-section assignments | 0 in all measured optimized results |
 | `start.ps1` | Two production-preview launches; backend `/health`, frontend and production JS asset returned HTTP 200; Ctrl+C stopped both process trees and ports were free afterward |
+| Documentation | README, API, algorithm, architecture, benchmark, demo, limitations and audit links checked; repository-specific absolute paths removed from current handoff docs |
+| GitHub | Published to `origin/main`; repository link below |
 | C++ extension | Loaded from this checkout’s `cpp_solver/cpp_solver.cp314-win_amd64.pyd` |
 | Browser | Production combined plan and Leaflet map inspected; combined KPIs and route/request data visible; zone_1 and explanation paths were also inspected in the audit |
 
@@ -52,4 +54,4 @@ One run preserved an already-feasible future repair before the emergency. In a s
 
 ## Readiness status
 
-**PARTIAL.** Automated tests, release build, current dataset API optimizations, verifier checks, standard persistence/restart flow, repeated production-preview startup/shutdown, documentation checks, and sampled browser paths passed. This status remains partial because the entire requested browser matrix and every status case through separate external restart/restore were not manually exercised. See [FINAL_RELEASE_AUDIT.md](FINAL_RELEASE_AUDIT.md) and [docs/BENCHMARKS.md](docs/BENCHMARKS.md) for evidence and limitations. Global optimality is not established; no same-conditions OR-Tools result is claimed.
+**PARTIAL.** Automated tests, release build, current dataset API optimizations, verifier checks, standard persistence/restart flow, repeated production-preview startup/shutdown, documentation checks, and sampled browser paths passed. README and supporting release documentation are ready, and `main` is pushed to GitHub. This status remains partial because the entire requested browser matrix and every status case through separate external restart/restore were not manually exercised. See [FINAL_RELEASE_AUDIT.md](FINAL_RELEASE_AUDIT.md) and [docs/BENCHMARKS.md](docs/BENCHMARKS.md) for evidence and limitations. Global optimality is not established; no same-conditions OR-Tools result is claimed.
