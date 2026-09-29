@@ -1,6 +1,6 @@
 # FINAL RELEASE AUDIT — v1.0.2 FINAL
 
-Audit date: 2026-09-26. Scope was limited to Python solution verification and release documentation. C++ solver code, search algorithms, objective, and datasets were not changed.
+Audit date: 2026-09-29. The audit covers the current backend/API, C++ binding, Python verifier, Leaflet frontend, persistence/replanning flow, release build, and current datasets. C++ solver code, search algorithms, objective, backend business rules, verifier, and datasets were not changed during this audit.
 
 ## verifier hardening
 
@@ -14,14 +14,14 @@ The release remains `v1.0.2 FINAL`; this work does not create a new version. The
 
 ## current benchmark
 
-Recorded on 2026-09-26 with `seed=42`, C++ mode, `time_limit_ms=3000`, and current prepared datasets. Each optimized result passed the Python verifier and had 100% assignment:
+Recorded on 2026-09-29 with `seed=42`, C++ mode, `time_limit_ms=3000`, default release configuration, and current prepared datasets. Each optimized result passed the Python verifier and had 100% assignment:
 
 | Dataset | Assigned | Unassigned | Used teams | Travel | Distance | Verified |
 |---|---:|---:|---:|---:|---:|:---:|
 | zone_1 | 66/66 | 0 | 7 | 417 min | 207.615 km | true |
 | zone_2 | 83/83 | 0 | 9 | 415 min | 207.837 km | true |
 | zone_3 | 56/56 | 0 | 7 | 343 min | 169.793 km | true |
-| combined | 205/205 | 0 | 24 | 1173 min | 584.047 km | true |
+| combined | 205/205 | 0 | 24 | 1185 min | 589.655 km | true |
 
 These travel and distance values describe this particular wall-clock-bounded run, not guaranteed exact outputs. Seed fixes stochastic choices, but wall-clock cutoff can change the amount of search completed. The hard invariants are `verified=true`, full assignment on the prepared datasets, and zero cross-section assignments in combined. Twenty-four teams is a confirmed found solution; global optimality is not proved. No reproducible OR-Tools artifact for this release is present, so this audit makes no OR-Tools team-count claim.
 
@@ -30,7 +30,7 @@ These travel and distance values describe this particular wall-clock-bounded run
 | Validation | Result |
 |---|---|
 | `python -m pytest backend/tests cpp_solver/tests -q` | 72 passed |
-| Frontend Vitest | 15 passed |
+| Frontend Vitest | 35 passed |
 | Frontend production build (`tsc -b && vite build`) | Passed |
 | `build.ps1` (pinned dependencies, C++ extension, frontend build) | Passed |
 | `scripts/full_flow.py` | Parent/child verified; explanation, event, replan, restart, and restore passed |
@@ -38,6 +38,16 @@ These travel and distance values describe this particular wall-clock-bounded run
 | C++ optimized run + Python verifier: zone_2 | 83/83, verified |
 | C++ optimized run + Python verifier: zone_3 | 56/56, verified |
 | C++ optimized run + Python verifier: combined | 205/205, verified; zero cross-section assignments |
+
+## API and browser checks
+
+The live `start.ps1` instance returned HTTP 200 for `/health`, the frontend entry point, and its served asset. Direct extension loading resolved to the `.pyd` under the current checkout's `cpp_solver` directory. Invalid JSON returned 422; missing plans and requests returned 404; invalid replanning returned 400; the backend remained healthy after each error.
+
+The browser smoke flow covered combined planning, KPI and verifier status, Leaflet tiles/attribution, section filtering, baseline/optimized switching, request and team focus, drawer/explanation access, reset behavior, and the collapsed technical details. Routes and API values remained sourced from the active plan.
+
+## emergency and persistence
+
+The live emergency flow used `IN_PROGRESS + NEW_EMERGENCY`: the in-progress request remained first for its team, the new request was released at the event time, and the child plan was verified. The child explanation and route diff were returned. `scripts/full_flow.py` also confirmed optimize → save → explanation → event → replan → diff → restart/restore with verified parent and child plans.
 
 ## known limitations
 
@@ -55,4 +65,8 @@ These travel and distance values describe this particular wall-clock-bounded run
 
 ## final readiness
 
-The scoped verifier defect is fixed and covered by a red-green regression. Backend/C++ tests, frontend tests/build, release build, four dataset validations, and the persistence/replanning restart flow passed. The project is ready as `v1.0.2 FINAL` subject to the documented heuristic and synthetic-routing limitations. No solver, algorithm, objective, or dataset changes were made.
+The scoped verifier defect is fixed and covered by a red-green regression. Backend/C++ tests, frontend tests/build, release build, five dataset validations, API error handling, browser smoke checks, emergency replanning, and the persistence/replanning restart flow passed. The project is ready as `v1.0.2 FINAL` subject to the documented heuristic and synthetic-routing limitations. No solver, algorithm, objective, verifier, backend business logic, or dataset changes were made. The final commit hash and push state are recorded in the release handoff and `git log`.
+
+## git state
+
+The audited branch is `main` with remote `origin`. The final handoff includes the release commit hash, push result, and the post-push clean-tree check.

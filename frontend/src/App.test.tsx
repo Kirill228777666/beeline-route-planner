@@ -50,13 +50,17 @@ describe("App", () => {
     await screen.findByText("Участок: zone_1");
     fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
     expect(await screen.findByText("Оптимизированный план")).toBeInTheDocument();
-    expect(screen.getByText("Python verifier: OK")).toBeInTheDocument();
-    expect(screen.getByText("1/1 назначено · независимая проверка Python пройдена")).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Показатели плана" })).getByRole("status")).toHaveTextContent("Проверен");
+    for (const label of ["ОПЕРАТИВНАЯ КАРТА", "ОПЕРАТИВНЫЙ СОСТАВ"]) expect(screen.queryByText(label)).not.toBeInTheDocument();
+    expect(screen.queryByText("Python verifier: OK")).not.toBeInTheDocument();
+    const technicalDetails = screen.getByText("Технические детали").closest("details");
+    expect(technicalDetails).not.toHaveAttribute("open");
+    expect(within(technicalDetails!).getByText(/Solver:/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Базовый" }));
     expect(screen.getByText("Базовый план")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Событие в течение дня" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Оптимизированный" }));
-    fireEvent.click(screen.getByRole("button", { name: "Заявка 11" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Заявка 11" }));
     expect(await screen.findByText("ПОЧЕМУ НАЗНАЧЕНА СЮДА?")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("Бригада соответствует ограничениям.")).toBeInTheDocument());
   });
@@ -73,10 +77,10 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: /!11Авария/ })).toBeInTheDocument();
     fireEvent.change(screen.getByRole("searchbox", { name: "Поиск заявок" }), { target: { value: "нет такого ID" } });
     expect(screen.getByText("Ничего не найдено по заданным фильтрам")).toBeInTheDocument();
-    expect(screen.getByText("1/1 назначено · независимая проверка Python пройдена")).toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Показатели плана" })).getByRole("status")).toHaveTextContent("Проверен");
   });
 
-  it("offers map zoom, pan guidance, and independently toggleable operational layers", async () => {
+  it("offers Leaflet zoom, visible attribution, and independently toggleable operational layers", async () => {
     render(<App />);
     await screen.findByText("Участок: zone_1");
     fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
@@ -86,14 +90,18 @@ describe("App", () => {
     expect(screen.getByRole("button", { name: "Уменьшить карту" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Сбросить масштаб карты" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Маршруты" })).toBeChecked();
-    const svg = screen.getByRole("img", { name: "Схематическая карта маршрутов бригад" });
-    expect(svg).toHaveAttribute("viewBox", "0 0 1000 620");
+    const map = screen.getByRole("region", { name: "Карта маршрутов" });
+    expect(map.querySelector(".leaflet-container")).toBeInTheDocument();
+    expect(within(map).getByRole("link", { name: "OpenStreetMap contributors" })).toBeInTheDocument();
+    const zoomIndicator = map.querySelector(".map-zoom-controls span");
+    const previousZoom = zoomIndicator?.textContent;
     fireEvent.click(screen.getByRole("button", { name: "Увеличить карту" }));
-    expect(svg).not.toHaveAttribute("viewBox", "0 0 1000 620");
+    expect(zoomIndicator?.textContent).not.toBe(previousZoom);
     expect(screen.getByRole("checkbox", { name: "Показывать аварии" })).toBeChecked();
     fireEvent.click(screen.getByRole("checkbox", { name: "Показывать аварии" }));
     expect(screen.getByRole("checkbox", { name: "Показывать аварии" })).not.toBeChecked();
-    expect(screen.getByText("Схематическая карта · координаты демонстрационные")).toBeInTheDocument();
+    expect(within(map).getByText("О карте")).toBeInTheDocument();
+    expect(within(map).queryByText("Демонстрационные данные · маршруты не являются дорожной навигацией")).not.toBeInTheDocument();
   });
 
   it("keeps map focus synchronized from team to request, preserves team focus on drawer close, and returns to all routes", async () => {
@@ -110,8 +118,31 @@ describe("App", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Закрыть карточку" }));
     expect(screen.getByText("Бригада 10003 · 1 заявка · 8,2 км")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Сбросить выбор" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Все маршруты" }));
-    expect(screen.getByText("Участок zone_1 · 1 заявка · 1 бригада")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Все" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: "Сбросить выбор" })).not.toBeInTheDocument();
+  });
+
+  it("toggles a selected request and team without rebuilding the plan", async () => {
+    render(<App />);
+    await screen.findByText("Участок: zone_1");
+    fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
+    await screen.findByText("Оптимизированный план");
+
+    const request = await screen.findByRole("button", { name: "Заявка 11" });
+    fireEvent.click(request);
+    expect(await screen.findByRole("complementary", { name: "Карточка заявки 11" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Заявка 11" }));
+    expect(screen.queryByRole("complementary", { name: "Карточка заявки 11" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Сбросить выбор" })).not.toBeInTheDocument();
+
+    const team = screen.getByRole("button", { name: /^Бригада 10003/ });
+    fireEvent.click(team);
+    expect(screen.getByRole("button", { name: "Сбросить выбор" })).toBeInTheDocument();
+    fireEvent.click(team);
+    expect(screen.queryByRole("button", { name: "Сбросить выбор" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Все" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("clears a team and request focus when switching to another section", async () => {
@@ -146,24 +177,28 @@ describe("App", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
     await screen.findByText("Оптимизированный план");
     fireEvent.click(screen.getByRole("button", { name: /^Бригада 10003/ }));
+    expect(screen.getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Все" })).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(screen.getByRole("button", { name: "Заявка 11" }));
     expect(await screen.findByRole("complementary", { name: "Карточка заявки 11" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Все" })).toHaveAttribute("aria-pressed", "true");
 
     fireEvent.click(screen.getByRole("button", { name: "zone_2" }));
 
     expect(screen.queryByRole("complementary", { name: "Карточка заявки 11" })).not.toBeInTheDocument();
-    expect(screen.getByText("Участок zone_2 · 1 заявка · 1 бригада")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "zone_2" })).toHaveAttribute("aria-pressed", "true");
     const map = screen.getByRole("region", { name: "Карта маршрутов" });
     expect(within(map).getAllByRole("button", { name: /^Заявка/ })).toHaveLength(1);
     expect(within(map).getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
 
     fireEvent.click(within(map).getByRole("button", { name: "Все маршруты" }));
-    expect(screen.getByText("Участок zone_2 · 1 заявка · 1 бригада")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "zone_2" })).toHaveAttribute("aria-pressed", "true");
     expect(within(map).getAllByRole("button", { name: /^Заявка/ })).toHaveLength(1);
     expect(within(map).getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
 
     fireEvent.click(within(map).getByRole("button", { name: "Все" }));
-    expect(screen.getByText("Все участки · 2 заявки · 2 бригады")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Все" })).toHaveAttribute("aria-pressed", "true");
     expect(within(map).getAllByRole("button", { name: /^Заявка/ })).toHaveLength(2);
   });
 
@@ -187,7 +222,7 @@ describe("App", () => {
     await screen.findByText("Участок: zone_1");
     fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
     await screen.findByText("Оптимизированный план");
-    fireEvent.click(screen.getByRole("button", { name: "Заявка 11" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Заявка 11" }));
     expect(await screen.findByText("Сервис объяснений временно недоступен")).toBeInTheDocument();
     expect(within(screen.getByRole("complementary", { name: "Карточка заявки 11" })).getByText("Тестовая улица, 1")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Повторить" }));

@@ -59,14 +59,14 @@ const sectionPlan: Plan = {
 };
 
 describe("RouteMap", () => {
-  it("renders separately selectable duplicate points, numbered stops, and emergency state", () => {
+  it("keeps requests with identical coordinates separately selectable and numbers a focused route", () => {
     const selectRequest = vi.fn();
     render(<RouteMap dataset={dataset} plan={plan} selectedSectionId={null} selectedTeamId={10003} selectedRequestId={null} onSelectTeam={vi.fn()} onSelectRequest={selectRequest} onSectionChange={vi.fn()} />);
     const points = screen.getAllByRole("button", { name: /Заявка/ });
     expect(points).toHaveLength(2);
-    expect(points[0]).toHaveAttribute("transform", expect.not.stringMatching(points[1].getAttribute("transform") ?? ""));
+    expect(points[0].parentElement?.style.marginLeft).not.toBe(points[1].parentElement?.style.marginLeft);
     expect(screen.getAllByText("Авария").length).toBeGreaterThan(0);
-    expect(screen.getByText("Схематическая карта · координаты демонстрационные")).toBeInTheDocument();
+    expect(screen.getByText("О карте")).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
     fireEvent.click(points[0]);
     expect(selectRequest).toHaveBeenCalledWith(11);
@@ -75,19 +75,18 @@ describe("RouteMap", () => {
   it("filters map elements by section without filtering districts and uses plan counts", () => {
     const onSectionChange = vi.fn();
     const props = { dataset: sectionDataset, plan: sectionPlan, selectedSectionId: null, selectedTeamId: null, selectedRequestId: null, onSelectTeam: vi.fn(), onSelectRequest: vi.fn(), onSectionChange };
-    const { container, rerender } = render(<RouteMap {...props} />);
-    const allRoutes = container.querySelectorAll('[data-map-item="route"]');
-    expect(allRoutes[0]).toHaveAttribute("stroke-width", "2.2");
-    expect(allRoutes[0]).toHaveAttribute("opacity", "0.24");
+    const { rerender } = render(<RouteMap {...props} />);
+    expect(screen.getByRole("button", { name: "Заявка 23" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "zone_1" }));
     expect(onSectionChange).toHaveBeenCalledWith("zone_1");
     rerender(<RouteMap {...props} selectedSectionId="zone_1" />);
 
     expect(screen.getAllByRole("button", { name: /^Заявка/ })).toHaveLength(2);
-    expect(container.querySelectorAll('[data-map-item="route"]')).toHaveLength(1);
-    expect(container.querySelectorAll('[data-map-item="team"]')).toHaveLength(1);
-    expect(screen.getByText("Участок zone_1 · 2 заявки · 1 бригада")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Офис бригады/ })).toHaveLength(1);
+    expect(screen.queryByText("Участок zone_1 · 2 заявки · 1 бригада")).not.toBeInTheDocument();
+    expect(screen.queryByText(/На карте:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "zone_1" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Заявка 21" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Заявка 22" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Заявка 23" })).not.toBeInTheDocument();
@@ -120,7 +119,7 @@ describe("RouteMap", () => {
 
     render(<RouteMap dataset={{ name: "zone_1", requests, teams }} plan={zone1Plan} selectedSectionId="zone_1" selectedTeamId={null} selectedRequestId={null} onSelectTeam={vi.fn()} onSelectRequest={vi.fn()} onSectionChange={vi.fn()} />);
 
-    expect(screen.getByText("Участок zone_1 · 7 заявок · 7 бригад")).toBeInTheDocument();
+    expect(screen.queryByText("Участок zone_1 · 7 заявок · 7 бригад")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /^Офис бригады/ })).toHaveLength(7);
   });
 
@@ -152,20 +151,18 @@ describe("RouteMap", () => {
   });
 
   it("focuses the selected team route and retains the selected request focus", () => {
-    const { container, rerender } = render(<RouteMap dataset={sectionDataset} plan={sectionPlan} selectedSectionId={null} selectedTeamId={101} selectedRequestId={null} onSelectTeam={vi.fn()} onSelectRequest={vi.fn()} onSectionChange={vi.fn()} />);
+    const { rerender } = render(<RouteMap dataset={sectionDataset} plan={sectionPlan} selectedSectionId={null} selectedTeamId={101} selectedRequestId={null} onSelectTeam={vi.fn()} onSelectRequest={vi.fn()} onSectionChange={vi.fn()} />);
 
     expect(screen.getByText("Бригада 101 · 2 заявки · 18,4 км")).toBeInTheDocument();
-    expect(container.querySelectorAll('[data-map-item="request"]')).toHaveLength(2);
-    expect(container.querySelectorAll('[data-map-item="team"]')).toHaveLength(1);
-    expect(container.querySelector('[data-map-item="route"][data-team-id="101"]')).toHaveAttribute("opacity", "0.95");
-    expect(container.querySelector('[data-map-item="route"][data-team-id="201"]')).toHaveAttribute("opacity", "0.045");
+    expect(screen.getAllByRole("button", { name: /^Заявка/ })).toHaveLength(3);
+    expect(screen.getAllByRole("button", { name: /^Офис бригады/ })).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Заявка 23" })).toBeInTheDocument();
 
     rerender(<RouteMap dataset={sectionDataset} plan={sectionPlan} selectedSectionId={null} selectedTeamId={101} selectedRequestId={22} onSelectTeam={vi.fn()} onSelectRequest={vi.fn()} onSectionChange={vi.fn()} />);
 
     expect(screen.getByRole("heading", { name: "Заявка #22 · маршрут Бригада 101" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Заявка 22" })).toHaveClass("selected");
-    expect(screen.getByRole("button", { name: "Заявка 21" })).toHaveAttribute("opacity", "0.64");
-    expect(container.querySelectorAll('[data-map-item="request"]')).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Заявка 22" })).toHaveClass("map-pin--selected");
+    expect(screen.getAllByRole("button", { name: /^Заявка/ })).toHaveLength(3);
   });
 });
 

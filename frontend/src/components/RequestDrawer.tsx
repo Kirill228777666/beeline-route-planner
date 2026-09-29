@@ -28,7 +28,7 @@ export function RequestDrawer({ request, stop, team, explanation, loading, error
   const start = explanation?.start ?? (stop ? formatClock(stop.start) : "—");
   const finish = explanation?.finish ?? (stop ? formatClock(stop.finish) : "—");
 
-  return <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <div className="drawer-backdrop">
     <aside className="request-drawer" aria-label={`Карточка заявки ${request.id}`}>
       <div className="drawer-head"><div><span className={`request-kind ${workType === "EMERGENCY" ? "emergency" : ""}`}>{workTypeLabel(workType)}</span><h2>Заявка #{request.id}</h2></div><button type="button" aria-label="Закрыть карточку" onClick={onClose}>×</button></div>
       <p className="drawer-address">{request.address || "Адрес не указан"}</p>

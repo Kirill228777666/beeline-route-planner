@@ -30,7 +30,7 @@ export function OperationsPanel(props: OperationsPanelProps) {
   ];
 
   return <aside className="operations-panel" aria-label="Бригады и заявки">
-    <div className="operations-panel-heading"><span className="section-kicker">ОПЕРАТИВНЫЙ СОСТАВ</span><h2>Ресурсы и заявки</h2></div>
+    <div className="operations-panel-heading"><h2>Ресурсы и заявки</h2></div>
     <div className="operations-tabs" role="tablist" aria-label="Списки плана">
       {tabs.map((tab) => <button key={tab.id} type="button" role="tab" id={`tab-${tab.id}`} aria-controls={`panel-${tab.id}`} aria-selected={activeTab === tab.id} className={activeTab === tab.id ? "active" : ""} onClick={() => setActiveTab(tab.id)}>{tab.label} <span>{tab.count}</span></button>)}
     </div>

@@ -8,7 +8,7 @@ import { PlanHistory } from "./components/PlanHistory";
 import { PlanSummary } from "./components/PlanSummary";
 import { RequestDrawer } from "./components/RequestDrawer";
 import { RouteMap } from "./components/RouteMap";
-import { metricNumber, sectionValue, validateDataset } from "./lib/presentation";
+import { sectionValue, validateDataset } from "./lib/presentation";
 import type { Dataset, DatasetOption, Explanation, Plan, PlanDiff, RequestStatus, SolverViewMode } from "./types";
 
 const datasets: DatasetOption[] = [
@@ -47,7 +47,6 @@ function App() {
   const teamMap = useMemo(() => new Map(dataset.teams.map((team) => [team.id, team])), [dataset.teams]);
   const assignedRequestIds = useMemo(() => new Set(activePlan?.routes.flatMap((route) => route.request_ids) ?? []), [activePlan]);
   const requestsInActivePlan = useMemo(() => new Set([...(activePlan?.routes.flatMap((route) => route.request_ids) ?? []), ...(activePlan?.unassigned_requests ?? [])]), [activePlan]);
-  const activeRequestCount = activePlan ? metricNumber(activePlan.metrics, "assigned") + metricNumber(activePlan.metrics, "unassigned", activePlan.unassigned_requests.length) : 0;
   const selectedAssignment = useMemo(() => {
     if (!activePlan || selectedRequestId === null) return null;
     for (const route of activePlan.routes) {
@@ -124,23 +123,32 @@ function App() {
     }
   }
 
-  async function selectRequest(requestId: number) {
-    if (!activePlan) return;
-    setSelectedRequestId(requestId);
-    const request = requestMap.get(requestId);
-    if (request && sectionValue(request)) setSelectedMapSectionId(sectionValue(request));
+  async function loadExplanation(planId: string, requestId: number) {
     setExplanation(null);
     setExplanationError("");
     setExplanationLoading(true);
-    const route = activePlan.routes.find((item) => item.request_ids.includes(requestId));
-    setSelectedTeamId(route?.team_id ?? null);
     try {
-      setExplanation(await getExplanation(activePlan.plan_id, requestId));
+      setExplanation(await getExplanation(planId, requestId));
     } catch (cause) {
       setExplanationError(cause instanceof Error ? cause.message : "Не удалось загрузить объяснение");
     } finally {
       setExplanationLoading(false);
     }
+  }
+
+  async function selectRequest(requestId: number) {
+    if (!activePlan) return;
+    if (selectedRequestId === requestId) {
+      setSelectedTeamId(null);
+      clearSelectedRequest();
+      return;
+    }
+    setSelectedRequestId(requestId);
+    const request = requestMap.get(requestId);
+    if (request && selectedMapSectionId && sectionValue(request) !== selectedMapSectionId) setSelectedMapSectionId(sectionValue(request) || null);
+    const route = activePlan.routes.find((item) => item.request_ids.includes(requestId));
+    setSelectedTeamId(route?.team_id ?? null);
+    await loadExplanation(activePlan.plan_id, requestId);
   }
 
   function clearSelectedRequest() {
@@ -150,9 +158,14 @@ function App() {
   }
 
   function selectTeam(teamId: number | null) {
+    if (teamId !== null && teamId === selectedTeamId) {
+      setSelectedTeamId(null);
+      clearSelectedRequest();
+      return;
+    }
     if (teamId !== null) {
       const team = teamMap.get(teamId);
-      if (team && sectionValue(team)) setSelectedMapSectionId(sectionValue(team));
+      if (team && selectedMapSectionId && sectionValue(team) !== selectedMapSectionId) setSelectedMapSectionId(sectionValue(team) || null);
       if (selectedRequestId !== null) {
         const requestRoute = activePlan?.routes.find((route) => route.request_ids.includes(selectedRequestId));
         if (requestRoute?.team_id !== teamId) clearSelectedRequest();
@@ -254,17 +267,17 @@ function App() {
     {loading && <div className="loading-status" role="status"><span className="spinner" />{loadingStep || "Выполняется операция"}</div>}
     <main className="dashboard-main">
       {error && <div className="global-error" role="alert"><span>!</span><div><strong>Операция не выполнена</strong><p>{error}</p></div><button type="button" aria-label="Закрыть ошибку" onClick={() => setError("")}>×</button></div>}
-      {!activePlan ? <section className="dashboard-empty"><div className="empty-graphic"><span>1</span><span>2</span><span>3</span><svg viewBox="0 0 300 100"><path d="M18 74 C82 6 120 90 188 28 S260 48 284 16" /></svg></div><span className="section-kicker">ГОТОВО К РАСЧЁТУ</span><h1>Постройте план выездов на сегодня</h1><p>Выберите участок или загрузите JSON. Backend рассчитает базовый и оптимизированный планы, затем проверит ограничения.</p><button type="button" className="build-button" disabled={loading || !dataset.requests.length} onClick={() => void buildPlans()}>{loading ? loadingStep || "Загрузка…" : "Построить план"}</button><div className="empty-features"><span>Skills</span><span>Транспорт</span><span>Оборудование</span><span>Python verifier</span></div></section> : <>
+      {!activePlan ? <section className="dashboard-empty"><div className="empty-graphic"><span>1</span><span>2</span><span>3</span><svg viewBox="0 0 300 100"><path d="M18 74 C82 6 120 90 188 28 S260 48 284 16" /></svg></div><span className="section-kicker">ГОТОВО К РАСЧЁТУ</span><h1>Постройте план выездов на сегодня</h1><p>Выберите участок или загрузите JSON. Построим базовый и оптимизированный планы, затем проверим ограничения.</p><button type="button" className="build-button" disabled={loading || !dataset.requests.length} onClick={() => void buildPlans()}>{loading ? loadingStep || "Загрузка…" : "Построить план"}</button><div className="empty-features"><span>Квалификация</span><span>Транспорт</span><span>Оборудование</span><span>Проверка ограничений</span></div></section> : <>
         <PlanSummary plan={activePlan} baseline={baselinePlan} comparisonPlan={optimizedPlan} datasetSize={dataset.requests.length} mode={mode} />
         {previousPlan && mode === "optimized" && <PlanHistory before={previousPlan} after={activePlan} diff={diff} statuses={statuses} />}
         <section className="operations-grid" aria-label="Оперативная обстановка">
           <RouteMap dataset={dataset} plan={activePlan} selectedSectionId={selectedMapSectionId} selectedTeamId={selectedTeamId} selectedRequestId={selectedRequestId} onSelectTeam={selectTeam} onSelectRequest={(id) => id === null ? clearSelectedRequest() : void selectRequest(id)} onSectionChange={selectMapSection} />
           <OperationsPanel dataset={dataset} plan={activePlan} selectedTeamId={selectedTeamId} selectedRequestId={selectedRequestId} statuses={statuses} diff={mode === "optimized" ? diff : null} onSelectTeam={selectTeam} onSelectRequest={(id) => void selectRequest(id)} />
         </section>
-        <footer className="dashboard-footer"><span>Solver: {activePlan.solver_version || String(activePlan.metrics.solver_engine ?? (mode === "optimized" ? "C++" : "baseline"))}</span><span>Маршрутизация: {activePlan.routing_source || "Синтетические координаты / Haversine"}</span><span className={activePlan.verified ? "footer-ok" : "footer-fail"}>{activePlan.verified ? `${metricNumber(activePlan.metrics, "assigned")}/${activeRequestCount} назначено · независимая проверка Python пройдена` : "Проверка verifier не пройдена — план не подтверждён"}</span></footer>
+    <footer className="dashboard-footer"><details className="technical-details"><summary>Технические детали</summary><div><span>Solver: {activePlan.solver_version || String(activePlan.metrics.solver_engine ?? (mode === "optimized" ? "C++" : "baseline"))}</span><span>Маршрутизация: {activePlan.routing_source || "Синтетические координаты / Haversine"}</span><span>Время расчёта: {String(activePlan.metrics.runtime_ms ?? "—")} мс</span><span className={activePlan.verified ? "footer-ok" : "footer-fail"}>{activePlan.verified ? "Независимая проверка ограничений: пройдена" : "Независимая проверка ограничений: не пройдена"}</span></div></details></footer>
       </>}
     </main>
-    {selectedRequestId !== null && activePlan && <RequestDrawer request={activeRequest} stop={selectedAssignment?.stop} team={selectedAssignment?.team} explanation={explanation} loading={explanationLoading} error={explanationError} assigned={assignedRequestIds.has(selectedRequestId)} includedInPlan={requestsInActivePlan.has(selectedRequestId)} status={selectedRequestStatus === "NEW" && assignedRequestIds.has(selectedRequestId) ? "ASSIGNED" : selectedRequestStatus} onRetry={() => void selectRequest(selectedRequestId)} onClose={clearSelectedRequest} />}
+    {selectedRequestId !== null && activePlan && <RequestDrawer request={activeRequest} stop={selectedAssignment?.stop} team={selectedAssignment?.team} explanation={explanation} loading={explanationLoading} error={explanationError} assigned={assignedRequestIds.has(selectedRequestId)} includedInPlan={requestsInActivePlan.has(selectedRequestId)} status={selectedRequestStatus === "NEW" && assignedRequestIds.has(selectedRequestId) ? "ASSIGNED" : selectedRequestStatus} onRetry={() => void loadExplanation(activePlan.plan_id, selectedRequestId)} onClose={clearSelectedRequest} />}
     {eventOpen && optimizedPlan && <EventDialog dataset={dataset} selectedRequestId={selectedRequestId} loading={loading} onClose={() => setEventOpen(false)} onSubmit={(submission) => void submitEvent(submission)} />}
   </div>;
 }

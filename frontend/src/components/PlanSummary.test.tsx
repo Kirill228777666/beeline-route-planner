@@ -42,9 +42,20 @@ describe("PlanSummary", () => {
   it("shows coverage, verifier result, and finite comparison values", () => {
     render(<PlanSummary plan={optimized} baseline={baseline} datasetSize={66} mode="optimized" />);
     expect(screen.getByText("66/66")).toBeInTheDocument();
-    expect(screen.getByText("Python verifier: OK")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Проверен");
+    expect(screen.getByRole("status")).toHaveAttribute("title", "Проверка ограничений выполнена");
+    expect(screen.queryByText("Python verifier: OK")).not.toBeInTheDocument();
+    expect(screen.queryByText("Время расчёта — фактический runtime соответствующего запроса")).not.toBeInTheDocument();
+    expect(screen.queryByText("Время расчёта")).not.toBeInTheDocument();
     expect(within(screen.getByText("Бригады").closest("article")!).getByText("7")).toBeInTheDocument();
     expect(screen.getAllByText("207,6 км")).toHaveLength(2);
+    const kpis = within(screen.getByRole("region", { name: "Показатели плана" })).getAllByRole("article");
+    expect(kpis.map((card) => card.querySelector("strong")?.textContent)).toEqual(["66/66", "7", "207,6 км", "417 мин", "0"]);
+    for (const card of kpis) {
+      expect(card.querySelector("small")).not.toBeInTheDocument();
+      expect(card.querySelector("i")).not.toBeInTheDocument();
+    }
+    for (const label of ["РЕЗУЛЬТАТ ПЛАНИРОВАНИЯ", "СРАВНЕНИЕ ПЛАНОВ"]) expect(screen.queryByText(label)).not.toBeInTheDocument();
     expect(screen.queryByText(/Infinity/)).not.toBeInTheDocument();
   });
 });
