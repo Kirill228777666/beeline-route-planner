@@ -1,7 +1,11 @@
 # Final release audit — Beeline Route Planner
 
 Audit date: 2026-09-29
-Audited branch/base commit: `main`, `e9a09f7f7cb8a0057088852833a795eadbfe7ada`
+Audited branch: `main`
+
+Baseline commit: `e9a09f7f7cb8a0057088852833a795eadbfe7ada`
+
+Audited implementation/documentation commit: `82c69df` (`Prepare final release docs and hardening`; this SHA is recorded in a documentation-only follow-up commit).
 Project version: `v1.0.2 FINAL` (version string unchanged)
 Status: **PARTIAL — fixes and verification are complete for the checked paths; several release gates below remain unverified.**
 

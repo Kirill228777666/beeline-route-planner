@@ -6,7 +6,7 @@ Audit run: 2026-09-29. This report describes the current checkout and current au
 
 On Windows, install Python 3.12+, Node.js `^20.19` or `>=22.12`, npm, and MSYS2 g++ with C++20/UCRT64 runtime. From the repository root run `.\build.ps1`, then `.\start.ps1`; open <http://127.0.0.1:5173>. For the guided 3–5 minute demo, use `demo_showcase`, inspect an explanation, report actual request statuses, add a 13:17 emergency, replan, and show the child plan/diff. Then show the run-specific combined result. Full setup and constraints are in [README.md](README.md); detailed demo steps are in [docs/DEMO_SCENARIO.md](docs/DEMO_SCENARIO.md).
 
-Repository: <https://github.com/Kirill228777666/beeline-route-planner> · branch `main` · current release `v1.0.2 FINAL`.
+Repository: <https://github.com/Kirill228777666/beeline-route-planner> · branch `main` · audited implementation commit `82c69df` · current release `v1.0.2 FINAL`.
 
 ## Validation
 
