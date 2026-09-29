@@ -3,7 +3,7 @@ from math import isclose, isfinite
 
 from app.constraints.engine import ConstraintEngine
 from app.constraints.schedule import calculate_schedule
-from app.domain.models import ProblemData, Solution
+from app.domain.models import ProblemData, RequestStatus, Solution
 
 
 @dataclass(frozen=True)
@@ -40,7 +40,8 @@ def verify_solution(problem: ProblemData, solution: Solution, travel) -> Verific
             if not request:
                 errors.append(f"unknown request {request_id}")
                 continue
-            if not engine.team_compatible(team, request).allowed:
+            fixed = request.status in {RequestStatus.COMPLETED, RequestStatus.IN_PROGRESS, RequestStatus.ON_THE_WAY}
+            if not engine.team_compatible(team, request, allow_unavailable=fixed).allowed:
                 errors.append(f"request {request_id} incompatible with team {team.id}")
             route_requests.append(request)
         schedule = calculate_schedule(team, route_requests, travel)

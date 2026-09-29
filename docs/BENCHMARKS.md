@@ -1,18 +1,24 @@
-# Benchmarks — v1.0.2 FINAL
+# Benchmarks — current audit sample, 2026-09-29
 
-Recorded run: 2026-09-29, `seed=42`, C++ optimized mode, `time_limit_ms=3000`, default release configuration, official service durations, section isolation enabled. The solver is wall-clock bounded: seed fixes the random stream, but the amount of search completed before timeout can vary. The values below are this run's observations, not guaranteed identical travel or distance on every execution. They were independently checked by the Python verifier.
+Direct `POST /api/optimize` responses from the current checkout. Each dataset was run in baseline and C++ mode with submitted `seed=42`, `time_limit_ms=3000`, default `SolverConfig` feature defaults, official normalized service durations, `haversine_synthetic`, and Python verifier enabled. Metrics and runtime below describe this specific run only. A fixed seed does not guarantee identical search progress under a wall-clock cutoff.
 
-| Dataset | Requests | Baseline assigned / teams | Optimized assigned / teams | Optimized travel | Optimized distance | Verified |
-|---|---:|---:|---:|---:|---:|:---:|
-| zone_1 | 66 | 55 / 12 | 66 / 7 | 417 min | 207.615 km | true |
-| zone_2 | 83 | 70 / 12 | 83 / 9 | 415 min | 207.837 km | true |
-| zone_3 | 56 | 43 / 11 | 56 / 7 | 343 min | 169.793 km | true |
-| combined | 205 | 168 / 35 | 205 / 24 | 1185 min | 589.655 km | true |
+| Dataset | Mode | Assigned | Teams | Travel (min) | Distance (km) | Runtime (ms) | Verified | Cross-section assignments |
+|---|---|---:|---:|---:|---:|---:|:---:|---:|
+| zone_1 | baseline | 55/66 | 12 | 975 | 485.820 | 7.560 | true | 0 |
+| zone_1 | C++ | 66/66 | 7 | 375 | 187.901 | 2703.065 | true | 0 |
+| zone_2 | baseline | 70/83 | 12 | 1211 | 607.681 | 10.435 | true | 0 |
+| zone_2 | C++ | 83/83 | 9 | 415 | 207.837 | 2705.074 | true | 0 |
+| zone_3 | baseline | 43/56 | 11 | 627 | 314.786 | 5.341 | true | 0 |
+| zone_3 | C++ | 56/56 | 7 | 336 | 165.918 | 2702.428 | true | 0 |
+| combined | baseline | 168/205 | 35 | 2813 | 1408.287 | 30.595 | true | 0 |
+| combined | C++ | 205/205 | 23 | 1208 | 601.692 | 2969.708 | true | 0 |
+| demo_showcase | baseline | 5/5 | 4 | 1 | 0.447 | 0.172 | true | 0 |
+| demo_showcase | C++ | 5/5 | 4 | 1 | 0.447 | 23.779 | true | 0 |
 
-Release invariants are `verified=true`, all requests assigned on these four prepared datasets, and zero cross-section assignments in `combined`. The solver has found a 24-team combined solution; this does not prove that 24 is globally minimal. No reproducible OR-Tools benchmark artifact is included in this release, so no OR-Tools team-count comparison is claimed.
+For this run the optimized solver returned 100% assignment on all five datasets, all verified, with zero cross-section assignments. Combined had 23 used teams in this run. That is a found result, not a proof of global minimum and not a fixed benchmark guarantee. Global optimality is not mathematically proved. No reproducible same-conditions OR-Tools artifact is available, so no OR-Tools team-count claim is made.
 
-`combined` is the technical union of the three independent operational sections. Each request and team retains its `section_id`; cross-section assignment is prohibited. Distances are comparative because routing uses `haversine_synthetic` over anonymized coordinates.
+The baseline numbers come from the actual baseline endpoint mode and are not required to be fully assigned. KPI totals and team counts in the UI must come from the API response. Coordinates are anonymized/synthetic and routing uses Haversine; distances are comparative and not road-navigation measurements.
 
-## Historical results
+## Historical / superseded
 
-The unrestricted `205/205, 20 teams` result is **HISTORICAL / SUPERSEDED — not current release**. It allowed cross-section assignments and is not a business-valid benchmark. Older benchmark values recorded in `acceptance_report.md` and `RELEASE_SNAPSHOT_v1.0.1.md` are historical snapshots, not current measurements.
+The unrestricted combined result `205/205, 20 teams` used cross-section assignments and is not business-valid. Earlier runs showing 24 combined teams or different travel/distance values are historical run-specific samples. The old v1.0.0/v1.0.1 records, including zone_3 `55/56`, remain historical and must not be substituted for this run. See `acceptance_report.md` and `RELEASE_SNAPSHOT_v1.0.1.md` for records marked superseded.

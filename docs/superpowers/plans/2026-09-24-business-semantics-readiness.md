@@ -1,3 +1,7 @@
+# HISTORICAL / IMPLEMENTED — business semantics readiness plan
+
+This plan records work completed before the final release audit. It is not a current validation report; use `FINAL_RELEASE_AUDIT.md` for current results and known gaps.
+
 # Business Semantics Readiness Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

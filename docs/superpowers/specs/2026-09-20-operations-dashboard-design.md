@@ -1,3 +1,7 @@
+# HISTORICAL / SUPERSEDED — initial dashboard design
+
+This specification predates the Leaflet implementation and describes the original dashboard direction. It is not the current UI contract; see `README.md` and `FINAL_RELEASE_AUDIT.md`.
+
 # Operations Dashboard Design
 
 ## Purpose

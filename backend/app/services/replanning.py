@@ -23,6 +23,7 @@ from app.solver.config import SolverConfig
 class ReplanningEventType(StrEnum):
     STATUS_CHANGED = "STATUS_CHANGED"
     NEW_EMERGENCY = "NEW_EMERGENCY"
+    TEAM_UNAVAILABLE = "TEAM_UNAVAILABLE"
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,8 @@ class ReplanningEvent:
     request_id: int | None = None
     status: RequestStatus | None = None
     request: Request | None = None
+    event_time: int | None = None
+    team_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +50,7 @@ class ReplanningResult:
     plan: Solution
     diff: ReplanningDiff
     verification: VerificationResult
+    problem: ProblemData
 
 
 class Optimizer(Protocol):
@@ -68,6 +72,8 @@ class ReplanningService:
         request_map = {request.id: request for request in problem.requests}
         status_map = {request.id: request.status for request in problem.requests}
         event_type = ReplanningEventType(event.event_type)
+        if event.event_time is not None and current_time < event.event_time:
+            raise ValueError("current_time cannot precede event_time")
         new_ids: list[int] = []
         if event_type == ReplanningEventType.STATUS_CHANGED:
             if event.request_id is None or event.status is None:
@@ -75,18 +81,38 @@ class ReplanningService:
             if event.request_id not in request_map:
                 raise ValueError(f"unknown request {event.request_id}")
             status_map[event.request_id] = RequestStatus(event.status)
+            if status_map[event.request_id] == RequestStatus.ON_THE_WAY and event.event_time is not None:
+                request = request_map[event.request_id]
+                request_map[event.request_id] = replace(
+                    request,
+                    release_time=max(request.release_time, event.event_time),
+                    window_start=max(request.window_start, event.event_time),
+                )
         elif event_type == ReplanningEventType.NEW_EMERGENCY:
             if event.request is None:
                 raise ValueError("NEW_EMERGENCY requires request")
-            emergency = replace(event.request, status=RequestStatus.NEW,
-                                work_type=WorkType.EMERGENCY,
-                                priority=priority_for(WorkType.EMERGENCY),
-                                service_duration=service_duration_for(WorkType.EMERGENCY),
-                                release_time=current_time,
-                                window_start=max(event.request.window_start, current_time))
+            event_time = event.event_time if event.event_time is not None else current_time
+            existing = request_map.get(event.request.id)
+            if existing is not None:
+                if existing.work_type != WorkType.EMERGENCY or existing.release_time != event_time:
+                    raise ValueError(f"duplicate request {event.request.id}")
+                emergency = existing
+            else:
+                emergency = replace(event.request, status=RequestStatus.NEW,
+                                    work_type=WorkType.EMERGENCY,
+                                    priority=priority_for(WorkType.EMERGENCY),
+                                    service_duration=service_duration_for(WorkType.EMERGENCY),
+                                    release_time=event_time,
+                                    window_start=max(event.request.window_start, event_time))
             request_map[emergency.id] = emergency
             status_map[emergency.id] = RequestStatus.NEW
             new_ids.append(emergency.id)
+        elif event_type == ReplanningEventType.TEAM_UNAVAILABLE:
+            if event.team_id is None or event.team_id not in {team.id for team in problem.teams}:
+                raise ValueError(f"unknown team {event.team_id}")
+            problem = ProblemData(problem.requests, tuple(
+                replace(team, available=False) if team.id == event.team_id else team for team in problem.teams
+            ))
 
         effective_requests = {
             request_id: replace(request, status=status_map[request_id])
@@ -112,9 +138,6 @@ class ReplanningService:
                     pending_by_team[route.team_id].append(request_id)
 
         pending_ids = [request_id for request_id in effective_requests if request_id not in fixed_ids]
-        for request_id in pending_ids:
-            if request_id not in assigned_old:
-                pending_by_team.setdefault(problem.teams[0].id, [])
 
         planning_teams = tuple(self._team_snapshot(team, fixed_by_team[team.id], effective_requests,
                                                    old_stops, current_time, problem) for team in problem.teams)
@@ -134,36 +157,30 @@ class ReplanningService:
                        if request_id in effective_requests and request_id not in fixed_ids and request_id not in ids)
             if ids:
                 final_route_ids[team.id] = ids
-        active_problem = ProblemData(tuple(effective_requests.values()), problem.teams)
+        active_problem = ProblemData(tuple(effective_requests.values()), planning_teams)
         final_plan = materialize_solution(final_route_ids, active_problem, self.travel)
         verification = verify_solution(active_problem, final_plan, self.travel)
         if not verification.valid:
             final_plan = self._fallback_plan(current_plan, active_problem, fixed_by_team, effective_requests)
             verification = verify_solution(active_problem, final_plan, self.travel)
         diff = self._diff(current_plan, final_plan, old_routes, old_stops, new_ids, status_map)
-        return ReplanningResult(final_plan, diff, verification)
+        return ReplanningResult(final_plan, diff, verification, active_problem)
 
     def _team_snapshot(self, team: Team, fixed_ids: list[int], requests: dict[int, Request],
                        old_stops: dict[int, object], current_time: int, problem: ProblemData) -> Team:
-        current_lat, current_lon = team.start_lat, team.start_lon
-        available_from = max(team.shift_start, current_time)
+        initial_available_from = (team.initial_available_from if team.initial_available_from is not None
+                                  else team.available_from)
+        current_lat = team.current_lat if team.current_lat is not None else team.start_lat
+        current_lon = team.current_lon if team.current_lon is not None else team.start_lon
+        available_from = max(team.shift_start, team.available_from, current_time)
         if fixed_ids:
             last_id = fixed_ids[-1]
             last_request = requests[last_id]
-            last_status = last_request.status
             stop = old_stops.get(last_id)
-            if last_status == RequestStatus.ON_THE_WAY:
-                previous_id = fixed_ids[-2] if len(fixed_ids) > 1 else None
-                previous = requests.get(previous_id) if previous_id is not None else None
-                current_lat = previous.lat if previous else team.start_lat
-                current_lon = previous.lon if previous else team.start_lon
-                available_from = current_time
-            else:
-                current_lat, current_lon = last_request.lat, last_request.lon
-                available_from = max(current_time, getattr(stop, "finish", current_time))
-        return replace(team, start_lat=current_lat, start_lon=current_lon,
-                       shift_start=max(team.shift_start, available_from), available_from=available_from,
-                       current_lat=current_lat, current_lon=current_lon)
+            current_lat, current_lon = last_request.lat, last_request.lon
+            available_from = max(available_from, getattr(stop, "finish", current_time))
+        return replace(team, available_from=available_from, current_lat=current_lat, current_lon=current_lon,
+                       initial_available_from=initial_available_from)
 
     def _stops_by_request(self, problem: ProblemData, plan: Solution) -> dict[int, object]:
         result: dict[int, object] = {}
@@ -216,13 +233,16 @@ class ReplanningService:
             conversion_started = time.perf_counter()
             request_payload = [{"id": request.id, "lat": request.lat, "lon": request.lon,
                                 "window_start": request.window_start, "window_end": request.window_end,
+                                "release_time": request.release_time,
                                 "service_duration": request.service_duration,
                                 "required_skills": int(request.required_skills),
                                 "required_equipment": list(request.required_equipment),
                                 **({"required_transport": request.required_transport.value} if request.required_transport else {}),
                                 "work_type": request.work_type.value, "region_id": request.region_id}
                                for request in problem.requests]
-            team_payload = [{"id": team.id, "start_lat": team.start_lat, "start_lon": team.start_lon,
+            team_payload = [{"id": team.id,
+                             "start_lat": team.current_lat if team.current_lat is not None else team.start_lat,
+                             "start_lon": team.current_lon if team.current_lon is not None else team.start_lon,
                              "shift_start": max(team.shift_start, team.available_from), "shift_end": team.shift_end,
                              "skills": int(team.skills), "equipment": list(team.equipment), "transport": team.transport.value,
                              "available": team.available, "region_id": team.region_id} for team in problem.teams]

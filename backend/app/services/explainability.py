@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from app.constraints.engine import ConstraintEngine, RejectReason
 from app.constraints.schedule import calculate_schedule
-from app.domain.models import ProblemData, Solution
+from app.domain.models import ProblemData, RequestStatus, Solution
 
 
 def _clock(minutes: int | None) -> str | None:
@@ -42,7 +42,8 @@ class ExplainabilityService:
 
         hard_constraints = []
         if team is not None:
-            compatibility = self.engine.team_compatible(team, request)
+            fixed = request.status in {RequestStatus.COMPLETED, RequestStatus.IN_PROGRESS, RequestStatus.ON_THE_WAY}
+            compatibility = self.engine.team_compatible(team, request, allow_unavailable=fixed)
             hard_constraints.extend([
                 {"code": "TEAM_COMPATIBILITY", "passed": compatibility.allowed,
                  "reason_code": compatibility.reason.value},
@@ -50,7 +51,7 @@ class ExplainabilityService:
                 {"code": "SECTION", "passed": team.section_id == request.section_id},
                 {"code": "TRANSPORT", "passed": not request.required_transport or team.transport == request.required_transport},
                 {"code": "EQUIPMENT", "passed": set(request.required_equipment).issubset(team.equipment)},
-                {"code": "TEAM_AVAILABLE", "passed": team.available},
+                {"code": "TEAM_AVAILABLE", "passed": team.available or fixed},
             ])
             if stop is not None:
                 hard_constraints.extend([

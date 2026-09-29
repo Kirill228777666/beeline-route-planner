@@ -64,3 +64,26 @@ def test_cpp_solver_rejects_cross_region_assignment():
     ], 1000, True)
     assert result["unassigned"] == [1]
     assert result["best_valid_solution"] is True
+
+
+def test_cpp_schedule_does_not_arrive_before_request_release_time():
+    import os
+    import sys
+    from pathlib import Path
+    os.add_dll_directory(r"C:\msys64\ucrt64\bin")
+    sys.path.insert(0, str(Path(__file__).parents[1]))
+    import cpp_solver
+
+    result = cpp_solver.solve([{
+        "id": 81, "lat": 55.76, "lon": 37.62, "window_start": 600,
+        "window_end": 1000, "release_time": 797, "service_duration": 80,
+        "required_skills": 8, "work_type": "EMERGENCY",
+    }], [{
+        "id": 81, "start_lat": 55.75, "start_lon": 37.61,
+        "shift_start": 600, "shift_end": 1100, "skills": 8,
+        "transport": "CAR", "available": True,
+    }], 1000, True)
+
+    stop = result["routes"][0]["stops"][0]
+    assert stop["arrival"] >= 797
+    assert stop["start"] >= 797

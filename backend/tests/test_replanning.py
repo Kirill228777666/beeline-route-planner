@@ -1,6 +1,6 @@
 from dataclasses import replace
 
-from app.domain.models import ProblemData, Request, RequestStatus, Skill, Team, Transport, WorkType
+from app.domain.models import ProblemData, Request, RequestStatus, Skill, Solution, Team, Transport, WorkType
 from app.services.replanning import ReplanningEvent, ReplanningEventType, ReplanningService
 from app.solver.regret3 import Regret3Solver
 from app.geo.travel import HaversineTravelMatrix
@@ -118,3 +118,68 @@ def test_in_progress_work_stays_first_before_new_emergency():
     assert route.request_ids == [1, 2]
     assert stops[2].start >= 650
     assert stops[2].start >= stops[1].finish
+
+
+def test_replan_preserves_future_team_availability_and_current_position():
+    problem = ProblemData(
+        (Request(10, "", "", WorkType.REPAIR, RequestStatus.ASSIGNED, 1, "", "A",
+                 55.750, 37.610, 540, 900, 1080, 30, Skill.REPAIR),),
+        (Team(1, "T", 55.700, 37.500, 540, 1100, Skill.REPAIR, Transport.CAR,
+              available_from=900, current_lat=55.720, current_lon=37.530),),
+    )
+    old_plan = materialize_solution({1: [10]}, problem, HaversineTravelMatrix())
+    captured = {}
+
+    def optimizer(planning_problem, travel, warm_start):
+        captured["team"] = planning_problem.teams[0]
+        return Regret3Solver().solve(planning_problem, travel)
+
+    emergency = Request(11, "", "", WorkType.EMERGENCY, RequestStatus.NEW, 3, "", "B",
+                        55.721, 37.531, 797, 797, 1000, 80, Skill.EMERGENCY)
+    ReplanningService(optimizer=optimizer).replan(
+        problem, old_plan, 797, ReplanningEvent(ReplanningEventType.NEW_EMERGENCY, request=emergency))
+
+    snapshot = captured["team"]
+    assert snapshot.available_from == 900
+    assert snapshot.current_lat == 55.720
+    assert snapshot.current_lon == 37.530
+
+
+def test_replanned_emergency_arrival_is_not_before_event_time():
+    completed = Request(20, "", "", WorkType.REPAIR, RequestStatus.COMPLETED, 1, "", "A",
+                        55.750, 37.610, 540, 540, 900, 30, Skill.REPAIR)
+    problem = ProblemData(
+        (completed,),
+        (Team(1, "T", 55.750, 37.600, 540, 1100, Skill.REPAIR | Skill.EMERGENCY,
+              Transport.CAR),),
+    )
+    old_plan = materialize_solution({1: [20]}, problem, HaversineTravelMatrix())
+    emergency = Request(21, "", "", WorkType.EMERGENCY, RequestStatus.NEW, 3, "", "B",
+                        55.760, 37.620, 797, 797, 1000, 80, Skill.EMERGENCY)
+
+    result = ReplanningService(
+        optimizer=lambda planning, travel, warm: Regret3Solver().solve(planning, travel)
+    ).replan(problem, old_plan, 797,
+             ReplanningEvent(ReplanningEventType.NEW_EMERGENCY, request=emergency))
+
+    assert result.verification.valid
+    stop = next(stop for route in result.plan.routes for stop in route.schedule if stop.request_id == 21)
+    assert stop.arrival >= 797
+    assert stop.start >= 797
+
+
+def test_replan_with_no_teams_returns_unassigned_instead_of_crashing():
+    request = Request(30, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "A",
+                      55.75, 37.61, 540, 540, 900, 30, Skill.LOCAL)
+    problem = ProblemData((request,), ())
+    old_plan = Solution([], [30], None, True)
+
+    result = ReplanningService(optimizer=lambda planning, travel, warm: Solution(
+        [], [item.id for item in planning.requests], None, True)).replan(
+            problem, old_plan, 797,
+            ReplanningEvent(ReplanningEventType.NEW_EMERGENCY,
+                           request=Request(31, "", "", WorkType.EMERGENCY, RequestStatus.NEW, 3, "", "B",
+                                           55.76, 37.62, 797, 797, 1000, 80, Skill.EMERGENCY)))
+
+    assert result.verification.valid
+    assert result.plan.unassigned == [30, 31]

@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
-from app.domain.models import Request, Stop, Team
+from app.domain.models import Request, RequestStatus, Stop, Team
 
 
 @dataclass(frozen=True)
@@ -14,16 +14,33 @@ class ScheduleResult:
 
 def calculate_schedule(team: Team, requests: list[Request], travel) -> ScheduleResult:
     previous = None
-    previous_finish = max(team.shift_start, team.available_from)
+    fixed_statuses = {RequestStatus.COMPLETED, RequestStatus.IN_PROGRESS, RequestStatus.ON_THE_WAY}
+    fixed_prefix_length = 0
+    while fixed_prefix_length < len(requests) and requests[fixed_prefix_length].status in fixed_statuses:
+        fixed_prefix_length += 1
+    has_fixed_prefix = fixed_prefix_length > 0
+    if has_fixed_prefix:
+        previous_finish = max(team.shift_start, team.initial_available_from
+                              if team.initial_available_from is not None else team.available_from)
+        from_lat, from_lon = team.start_lat, team.start_lon
+    else:
+        previous_finish = max(team.shift_start, team.available_from)
+        from_lat = team.current_lat if team.current_lat is not None else team.start_lat
+        from_lon = team.current_lon if team.current_lon is not None else team.start_lon
     stops: list[Stop] = []
     total_distance = 0.0
     total_travel_time = 0
     for request in requests:
-        if previous is None:
-            travel_time, distance = travel.from_team(team, request)
-        else:
+        if has_fixed_prefix and len(stops) == fixed_prefix_length:
+            previous_finish = max(previous_finish, team.available_from)
+            from_lat = team.current_lat if team.current_lat is not None else (previous.lat if previous else team.start_lat)
+            from_lon = team.current_lon if team.current_lon is not None else (previous.lon if previous else team.start_lon)
+            previous = None
+        if previous is not None:
             travel_time, distance = travel.from_request(previous, request, team.transport.value)
-        arrival = previous_finish + travel_time
+        else:
+            travel_time, distance = travel.from_team(replace(team, start_lat=from_lat, start_lon=from_lon), request)
+        arrival = max(previous_finish, request.release_time) + travel_time
         start = max(arrival, request.window_start, request.release_time)
         finish = start + request.service_duration
         if start > request.window_end:

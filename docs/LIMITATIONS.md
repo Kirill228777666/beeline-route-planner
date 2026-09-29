@@ -1,8 +1,11 @@
-# Limitations
+# Ограничения и допущения
 
-- Global mathematical optimality is not proved; the solver is a bounded heuristic/hybrid search.
-- Demo routing currently uses synthetic coordinates and Haversine fallback, not authoritative road-network distances.
-- Therefore kilometres and travel distances are comparative benchmark values, not operational navigation estimates.
-- Wall-clock time limits can slightly change secondary metrics even with a fixed seed; hard feasibility and the verifier gate remain mandatory.
-- The primary correctness guarantee is the independent Python verifier, run after solver output and before API response.
-- The release package does not include a prebuilt C++ binary or `node_modules`; `build.ps1` requires Python 3.12+, Node.js/npm, and a C++20-capable g++ toolchain.
+- **Оптимальность.** C++ solver использует эвристический/ограниченный поиск. Глобальный математический оптимум и минимальное число бригад не доказываются. Значение 23 команды на combined получено в конкретном запуске, а не является целевым числом или гарантией.
+- **Routing.** Источник `haversine_synthetic` использует демонстрационные/обезличенные координаты и модель Haversine. Это не дорожная сеть: километры и travel time сравнительные, для реальной диспетчеризации нужны достоверная дорожная матрица и адреса.
+- **Картографические тайлы.** Leaflet использует публичные тайлы OpenStreetMap с attribution; для подложки нужен сетевой доступ. Полилинии solver не привязаны к реальным дорогам и не являются навигацией.
+- **Воспроизводимость.** Seed сохраняется и делает стохастические решения воспроизводимее, но wall-clock лимит может завершать поиск в разной точке; runtime, travel, distance и число команд могут отличаться между запусками.
+- **Фактическое исполнение.** Статусы работ и текущая позиция поступают от оператора/входного snapshot; GPS-трекинга нет. Система не ставит `COMPLETED` автоматически по прошедшему плановому времени. Если status events не переданы, заявка остаётся в исходном статусе; replanning на позднее время может оставить её неназначенной.
+- **Аварийный порядок.** EMERGENCY имеет высший приоритет в лексикографической цели назначения/покрытия и получает event-time release. Нет отдельного абсолютного правила «авария должна быть следующей остановкой перед любой выполнимой будущей заявкой».
+- **Рабочий календарь.** Поддерживаются `available`, `available_from` и смена. Отдельного календаря выходных/отпусков/дежурств нет; бригада, переданная как `available=true`, считается допустимым ресурсом с учётом остальных ограничений.
+- **Независимая проверка.** Python verifier перепроверяет допустимость решения перед возвратом API и при restore. Verified подтверждает hard constraints и согласованность solution, но не доказывает глобальную оптимальность и не подтверждает реальные статусы на месте.
+- **Сборка Windows.** Требуется Python ≥3.12, Node.js `^20.19` или `>=22.12` (ограничение Vite 8), npm, g++ C++20 и MSYS2 UCRT64 runtime. Текущая DLL-загрузка solver ожидает `C:\msys64\ucrt64\bin`.

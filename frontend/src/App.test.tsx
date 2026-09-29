@@ -275,4 +275,36 @@ describe("App", () => {
     fireEvent.click(screen.getByRole("button", { name: "Оптимизированный" }));
     expect(screen.getByRole("heading", { name: "Оптимизированный план" })).toBeInTheDocument();
   });
+
+  it("submits a real team-unavailable event and does not request a request explanation", async () => {
+    const calls: Array<{ url: string; body: unknown }> = [];
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.endsWith("/datasets/zone_1.json")) return jsonResponse(dataset);
+      if (url.endsWith("/api/optimize")) {
+        const payload = JSON.parse(String(init?.body));
+        return jsonResponse(makePlan(payload.solver === "baseline" ? "baseline" : "optimized", 1));
+      }
+      if (url.endsWith("/events")) {
+        calls.push({ url, body: JSON.parse(String(init?.body)) });
+        return jsonResponse({ event_id: 12, event_time: 797 });
+      }
+      if (url.endsWith("/replan")) return jsonResponse({ ...makePlan("child", 1), parent_plan_id: "optimized" });
+      if (url.endsWith("/child/diff")) return jsonResponse({ plan_id: "child", event_id: 12, reassigned_request_ids: [], time_changed_request_ids: [], route_changed_team_ids: [], cancelled_request_ids: [], new_request_ids: [] });
+      return jsonResponse({ detail: `unexpected API call ${init?.method ?? "GET"} ${url}` }, 404);
+    }));
+
+    render(<App />);
+    await screen.findByText("Участок: zone_1");
+    fireEvent.click(screen.getAllByRole("button", { name: /Построить план/ })[0]);
+    await screen.findByText("Оптимизированный план");
+    fireEvent.click(screen.getByRole("button", { name: "Событие в течение дня" }));
+    fireEvent.click(screen.getByRole("button", { name: "Бригада недоступна" }));
+    fireEvent.change(screen.getByLabelText("Причина"), { target: { value: "Поломка" } });
+    fireEvent.click(screen.getByRole("button", { name: "Перестроить план" }));
+
+    await screen.findByText("Что изменилось после события");
+    expect(calls[0].body).toEqual({ event_type: "TEAM_UNAVAILABLE", event_time: "13:17", team_id: 10003, reason: "Поломка" });
+    expect(screen.queryByRole("complementary", { name: /Карточка заявки/ })).not.toBeInTheDocument();
+  });
 });

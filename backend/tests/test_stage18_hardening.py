@@ -75,7 +75,7 @@ def test_cpp_edge_case_matrix_is_verifier_safe():
     assert cpp_solution(ProblemData((one_request,), (one_team,))).unassigned == []
 
     cases = [
-        Request(2, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "skill", 55.75, 37.61, 540, 540, 900, 30, Skill.GIGABIT),
+        Request(2, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "skill", 55.75, 37.61, 540, 540, 900, 30, Skill(1 << 4)),
         Request(3, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "transport", 55.75, 37.61, 540, 540, 900, 30, Skill.REPAIR, Transport.WALK),
         Request(4, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "equipment", 55.75, 37.61, 540, 540, 900, 30, Skill.REPAIR, None, ("OTDR",)),
         Request(5, "", "", WorkType.REPAIR, RequestStatus.NEW, 1, "", "short shift", 55.75, 37.61, 540, 540, 900, 30, Skill.REPAIR),

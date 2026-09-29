@@ -22,8 +22,8 @@ class Compatibility:
 
 
 class ConstraintEngine:
-    def team_compatible(self, team: Team, request: Request) -> Compatibility:
-        if not team.available:
+    def team_compatible(self, team: Team, request: Request, allow_unavailable: bool = False) -> Compatibility:
+        if not team.available and not allow_unavailable:
             return Compatibility(False, RejectReason.TEAM_UNAVAILABLE, "team is unavailable")
         if team.section_id != request.section_id:
             return Compatibility(False, RejectReason.WRONG_REGION, "request and team belong to different sections")

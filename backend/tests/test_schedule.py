@@ -32,3 +32,16 @@ def test_service_that_finishes_after_shift_is_invalid():
     result = calculate_schedule(make_team(shift_end=630), [make_request(service_duration=60)], HaversineTravelMatrix())
     assert not result.valid
 
+
+def test_release_time_delays_departure_so_arrival_is_not_historical():
+    travel = HaversineTravelMatrix()
+    team = make_team(available_from=600, shift_end=1000)
+    request = make_request(lat=55.76, lon=37.62, window_start=600, window_end=900, release_time=797)
+
+    result = calculate_schedule(team, [request], travel)
+
+    assert result.valid
+    stop = result.stops[0]
+    assert stop.arrival >= request.release_time
+    assert stop.start >= request.release_time
+    assert stop.finish > stop.start

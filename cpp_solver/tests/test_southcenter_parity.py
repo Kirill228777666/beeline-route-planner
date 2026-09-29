@@ -33,7 +33,7 @@ def _cpp_solution(result):
     return Solution(routes, list(result["unassigned"]), None, False)
 
 
-def test_southcenter_post_vnd_repair_restores_feasible_request_without_id_specific_logic():
+def test_source_skill_aliases_allow_python_and_cpp_to_assign_all_southcenter_requests():
     problem = _southcenter_problem()
     python_solution = Regret3Solver().solve(problem, HaversineTravelMatrix())
     requests = [{"id": r.id, "lat": r.lat, "lon": r.lon, "window_start": r.window_start, "window_end": r.window_end,
@@ -46,7 +46,7 @@ def test_southcenter_post_vnd_repair_restores_feasible_request_without_id_specif
              for t in problem.teams]
     cpp_result = cpp_solver.solve(requests, teams, 60_000, True)
     assert len(problem.requests) == 56
-    assert len(problem.requests) - len(python_solution.unassigned) == 55
+    assert len(problem.requests) - len(python_solution.unassigned) == 56
     assert len(problem.requests) - len(cpp_result["unassigned"]) == 56
     assert cpp_result["best_valid_solution"] is True
 

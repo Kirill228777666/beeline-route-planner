@@ -227,9 +227,9 @@ function App() {
       }
       if (submission.newRequest) {
         setDataset((current) => ({ ...current, requests: current.requests.some((request) => request.id === submission.newRequest?.id) ? current.requests : [...current.requests, submission.newRequest as NonNullable<EventSubmission["newRequest"]>] }));
-        setStatuses((current) => ({ ...current, [submission.focusRequestId]: "NEW" }));
+        setStatuses((current) => ({ ...current, [submission.newRequest?.id as number]: "NEW" }));
       }
-      if (submission.status) setStatuses((current) => ({ ...current, [submission.focusRequestId]: submission.status as RequestStatus }));
+      if (submission.status && submission.focusRequestId !== null) setStatuses((current) => ({ ...current, [submission.focusRequestId as number]: submission.status as RequestStatus }));
       const enriched = { ...child, diff: childDiff, event_id: event.event_id };
       setPreviousPlan(parent);
       setOptimizedPlan(enriched);
@@ -238,17 +238,19 @@ function App() {
       setEventOpen(false);
       setSelectedTeamId(null);
       setSelectedRequestId(submission.focusRequestId);
-      const changedRequest = submission.newRequest ?? requestMap.get(submission.focusRequestId);
+      const changedRequest = submission.newRequest ?? (submission.focusRequestId === null ? undefined : requestMap.get(submission.focusRequestId));
       setSelectedMapSectionId(changedRequest ? sectionValue(changedRequest) || null : null);
       setExplanation(null);
       setExplanationError("");
-      setExplanationLoading(true);
-      try {
-        setExplanation(await getExplanation(child.plan_id, submission.focusRequestId));
-      } catch (cause) {
-        setExplanationError(cause instanceof Error ? cause.message : "Не удалось загрузить объяснение изменения");
-      } finally {
-        setExplanationLoading(false);
+      if (submission.focusRequestId !== null) {
+        setExplanationLoading(true);
+        try {
+          setExplanation(await getExplanation(child.plan_id, submission.focusRequestId));
+        } catch (cause) {
+          setExplanationError(cause instanceof Error ? cause.message : "Не удалось загрузить объяснение изменения");
+        } finally {
+          setExplanationLoading(false);
+        }
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Не удалось перепланировать день");

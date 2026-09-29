@@ -30,9 +30,8 @@ class Transport(str, Enum):
 class Skill(IntFlag):
     LOCAL = 1 << 0
     CONNECTION = 1 << 1
-    REPAIR = 1 << 2
     EMERGENCY = 1 << 3
-    GIGABIT = 1 << 4
+    REPAIR = LOCAL
 
 
 @dataclass(frozen=True)
@@ -81,6 +80,7 @@ class Team:
     current_lon: float | None = None
     region_id: str = ""
     district: str = ""
+    initial_available_from: int | None = None
 
     @property
     def section_id(self) -> str:

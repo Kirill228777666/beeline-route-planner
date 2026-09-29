@@ -3,10 +3,12 @@ from io import StringIO
 from app.constraints.schedule import calculate_schedule
 from app.domain.models import Request, RequestStatus, Skill, Team, Transport, WorkType
 from app.domain.norms import (
+    default_skill_for,
     priority_for,
     service_duration_for,
     total_norm_for,
 )
+from app.domain.models import Skill
 from app.geo.travel import HaversineTravelMatrix
 from app.importer.csv_parser import parse_csv
 
@@ -40,6 +42,12 @@ def test_official_priority_order():
     assert priority_for(WorkType.EMERGENCY) > priority_for(WorkType.CONNECTION)
     assert priority_for(WorkType.CONNECTION) > priority_for(WorkType.REPAIR)
     assert priority_for(WorkType.REPAIR) == priority_for(WorkType.ADD_ON)
+
+
+def test_required_skill_catalogue_matches_source_specification():
+    assert {skill.name for skill in Skill} == {"LOCAL", "CONNECTION", "EMERGENCY"}
+    assert default_skill_for(WorkType.REPAIR) == Skill.LOCAL
+    assert default_skill_for(WorkType.ADD_ON) == Skill.CONNECTION
 
 
 def test_release_time_is_a_hard_lower_bound_for_emergency():

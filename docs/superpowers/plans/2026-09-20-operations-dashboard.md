@@ -1,3 +1,7 @@
+# HISTORICAL / IMPLEMENTED — original dashboard plan
+
+This plan records the initial frontend design. Its SVG map references are superseded: the current frontend uses Leaflet. For current behavior, see `README.md`, `docs/ARCHITECTURE.md`, and `FINAL_RELEASE_AUDIT.md`.
+
 # Operations Dashboard Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -12,7 +16,7 @@
 
 ## Global Constraints
 
-- Work only in `C:\Users\Kirill\Documents\Biline project`.
+- Work only in the project repository root.
 - Keep Python backend, C++ solver, datasets, API contracts, priorities, constraints, and persistence unchanged.
 - Keep the map network-independent and based on the current dataset coordinates.
 - Replanning remains available only for optimized plans.

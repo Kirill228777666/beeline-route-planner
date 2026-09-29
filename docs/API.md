@@ -1,29 +1,52 @@
-# API
+# HTTP API
 
-Base URL: `http://127.0.0.1:8000`.
+Локальный base URL: `http://127.0.0.1:8000`. Полная интерактивная схема FastAPI доступна на `/docs`; readiness endpoint — `GET /health`.
 
-## Build a plan
+## Построение плана
 
-`POST /api/optimize`
+`POST /api/optimize` принимает объект с `requests`, `teams`, `solver` (`baseline` или `cpp`) и необязательным `solver_config`. Обычно UI отправляет загруженный dataset без преобразования бизнес-семантики.
 
-Request body contains `requests`, `teams`, `solver` (`baseline` or `cpp`), and optional `solver_config`. `section_id` is the canonical operational field: an assignment is allowed only when request and team have the same section. `district` is informational and never blocks an assignment inside one section. `region_id` remains a supported legacy alias; if both are passed, non-empty `section_id` wins. Empty values match only empty values.
+Основные входные поля заявки: `id`, `lat`, `lon`, `work_type`, `window_start`, `window_end`, `required_skills`, `required_equipment`, `required_transport`, `service_duration`, `release_time`, `section_id` (legacy: `region_id`) и `district`. Поля бригады включают `id`, стартовую/текущую позицию, `shift_start`, `shift_end`, skills, equipment, transport, `available`, `available_from`, `section_id` и `district`.
 
-Team input additionally supports `available` and `available_from`. An unavailable team is a hard-ineligible candidate and receives `TEAM_UNAVAILABLE` in an explanation.
+`section_id` задаёт hard boundary, район не ограничивает назначение. Пустой участок совпадает только с пустым. API принимает `service_duration` ради совместимости, но сервер нормализует его по справочнику: CONNECTION 70, EMERGENCY 80, ADD_ON 20, REPAIR 30 минут; время в пути рассчитывается отдельно.
 
-`service_duration` is accepted at the API boundary for input compatibility, but the backend normalizes it through the official catalogue: CONNECTION 70, EMERGENCY 80, ADD_ON 20, REPAIR 30 minutes. Travel is calculated separately.
+Пример минимальной формы запроса (значения времени передаются в формате, допускаемом текущей OpenAPI-схемой):
 
-The response contains `plan_id`, routes, unassigned requests, metrics, `verified`, `solver_config`, `solver_version`, and `routing_source`.
+```json
+{
+  "solver": "cpp",
+  "requests": [],
+  "teams": [],
+  "solver_config": {
+    "seed": 42,
+    "time_limit_ms": 3000
+  }
+}
+```
 
-## Persisted plans and replanning
+Ответ содержит `plan_id`, routes/stops, unassigned requests, metrics, `verified`, solver config/version и routing source. Принимать результат как допустимый можно только если `verified=true`.
 
-- `GET /api/plans/{plan_id}` — restore a saved plan.
-- `POST /api/plans/{plan_id}/events` — save a status change, cancellation, or new emergency event.
-- `POST /api/plans/{plan_id}/replan` — create a new child plan using the parent plan and event history.
-- `GET /api/plans/{plan_id}/diff` — return changed assignments, times, routes, cancellations, and new requests.
-- `GET /api/plans/{plan_id}/requests/{request_id}/explanation` — deterministic assignment/constraint explanation.
+## Объяснение
 
-Replanning preserves `COMPLETED`, `IN_PROGRESS`, and `ON_THE_WAY` work, removes `CANCELLED` work, and returns not-yet-started work to the optimization pool. A new emergency receives `release_time=event_time`, is normalized to 80 minutes of onsite service, and cannot start before the event. The response includes before/after metrics and `verified=true` for an accepted child plan.
+`GET /api/plans/{plan_id}/requests/{request_id}/explanation` возвращает фактическое назначение, расписание, проверенные ограничения и причины отклонения альтернатив. Причины строятся из доступных данных constraint engine, а не генерируются LLM.
 
-## Error contract
+## События и перепланирование
 
-Invalid request payloads return FastAPI validation errors (`422`). Missing plans or requests return `404`; a replan without an event returns `400`. A solver result rejected by the verifier returns `503`. These errors are request-scoped and do not terminate the backend process.
+Поддерживаемые типы для `POST /api/plans/{plan_id}/events`:
+
+- `STATUS_CHANGED`: `event_time`, `request_id`, `status` (`NEW`, `ASSIGNED`, `ON_THE_WAY`, `IN_PROGRESS`, `COMPLETED` или `CANCELLED`). Только `COMPLETED`, `IN_PROGRESS` и `ON_THE_WAY` являются фиксированными при replan.
+- `NEW_EMERGENCY`: `event_time` и объект `request`. Backend нормализует тип/приоритет/длительность, назначает `release_time=event_time`; раньше события обслуживание начать нельзя.
+- `TEAM_UNAVAILABLE`: `event_time`, `team_id`, необязательная `reason`.
+
+Каждый event сохраняется. `POST /api/plans/{plan_id}/replan` принимает `event_id` и `current_time`, применяет историю событий и создаёт отдельный child plan. Parent не перезаписывается. `COMPLETED`, `IN_PROGRESS` и `ON_THE_WAY` сохраняют назначение/положение в порядке fixed work; CANCELLED исключается; будущая незафиксированная работа оптимизируется повторно. Недоступная бригада не получает новые назначения.
+
+Важно: плановые времена не являются фактом выполнения. Если диспетчер не отправил `COMPLETED`, ранее запланированная заявка остаётся в исходном статусе и может стать неназначаемой при перепланировании на более позднее время. Перед аварийным replanning нужно внести реальные статусы завершённых и выполняемых работ. `IN_PROGRESS` не прерывается ради аварии.
+
+Успешный replan возвращает child plan, метрики до/после, изменения и статус независимой проверки.
+
+## Сохранённые планы и ошибки
+
+- `GET /api/plans/{plan_id}` — загрузить сохранённый план; сохранённый флаг `verified` дополнительно перепроверяется при restore.
+- `GET /api/plans/{plan_id}/diff` — diff дочернего плана.
+
+Ошибки: валидация входа — HTTP 422; отсутствующий plan/request/team/event — 404; replan без события — 400; решение, отклонённое verifier, — 503. Ошибка одного запроса не должна завершать backend.

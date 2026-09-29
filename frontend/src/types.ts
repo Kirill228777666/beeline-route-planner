@@ -116,7 +116,7 @@ export type Explanation = {
   verified?: boolean;
 };
 
-export type EventType = "NEW_EMERGENCY" | "STATUS_CHANGED";
+export type EventType = "NEW_EMERGENCY" | "STATUS_CHANGED" | "TEAM_UNAVAILABLE";
 export type RequestStatus = "NEW" | "ASSIGNED" | "ON_THE_WAY" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 export type SolverViewMode = "optimized" | "baseline";
 

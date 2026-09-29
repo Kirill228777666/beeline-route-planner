@@ -1,3 +1,7 @@
+# HISTORICAL / IMPLEMENTED — business semantics design
+
+This specification records the completed business-semantics change. Current behavior and validation status are documented in `README.md` and `FINAL_RELEASE_AUDIT.md`.
+
 # Business Semantics Readiness Design
 
 ## Goal

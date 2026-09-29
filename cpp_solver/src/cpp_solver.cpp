@@ -26,7 +26,7 @@ constexpr double PI = 3.14159265358979323846;
 
 struct Request {
     int index{};
-    int id{}; double lat{}, lon{}; int window_start{}, window_end{}, service_duration{};
+    int id{}; double lat{}, lon{}; int window_start{}, window_end{}, service_duration{}, release_time{};
     int required_skills{}; std::vector<std::string> required_equipment; std::string transport; std::string work_type;
     std::string region_id;
 };
@@ -134,7 +134,7 @@ Schedule schedule_route_impl(const Team& team, const std::vector<int>& ids,
         const auto it = requests.find(id); if (it == requests.end()) return result;
         const Request& request = it->second;
         auto [travel_time, distance] = travel(from_lat, from_lon, request.lat, request.lon, team.transport);
-        int arrival = previous_finish + travel_time;
+        int arrival = std::max(previous_finish, request.release_time) + travel_time;
         int start = std::max(arrival, request.window_start);
         int finish = start + request.service_duration;
         if (start > request.window_end || finish > team.shift_end) return result;
@@ -264,7 +264,7 @@ struct Solver {
             const auto travel_result = leg(team, previous_id, id, first);
             const int travel_time = travel_result.first;
             const double distance = travel_result.second;
-            const int arrival = previous_finish + travel_time;
+            const int arrival = std::max(previous_finish, request.release_time) + travel_time;
             const int start = std::max(arrival, request.window_start);
             const int finish = start + request.service_duration;
             if (start > request.window_end || finish > team.shift_end) return result;
@@ -319,8 +319,9 @@ struct Solver {
         ++insertion_checks;
         const Team& team = teams[ti];
         const auto incoming = leg(team, position ? route.request_ids[position-1] : 0, request.id, position == 0);
-        const int finish = std::max((position ? route.stops[position-1].finish : team.shift_start) + incoming.first,
-                                    request.window_start) + request.service_duration;
+        const int departure = std::max(position ? route.stops[position-1].finish : team.shift_start,
+                                       request.release_time);
+        const int finish = std::max(departure + incoming.first, request.window_start) + request.service_duration;
         if (finish > team.shift_end || finish - request.service_duration > request.window_end) {
             ++insertion_rejects; return false;
         }
@@ -1316,6 +1317,7 @@ struct Solver {
 Request request_from_dict(const py::dict& d) {
     Request r; r.id = d["id"].cast<int>(); r.lat = d["lat"].cast<double>(); r.lon = d["lon"].cast<double>();
     r.window_start = d["window_start"].cast<int>(); r.window_end = d["window_end"].cast<int>(); r.service_duration = d["service_duration"].cast<int>();
+    r.release_time = d.contains("release_time") ? d["release_time"].cast<int>() : 0;
     r.required_skills = d["required_skills"].cast<int>();
     r.required_equipment = d.contains("required_equipment") ? d["required_equipment"].cast<std::vector<std::string>>() : std::vector<std::string>{};
     r.transport = d.contains("required_transport") ? d["required_transport"].cast<std::string>() : "";

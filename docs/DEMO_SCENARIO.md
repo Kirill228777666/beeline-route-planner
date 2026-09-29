@@ -1,13 +1,23 @@
-# Demo scenario
+# Демонстрация проекта (3–5 минут)
 
-1. From the project root run `.\build.ps1` once.
-2. Run `.\start.ps1`.
-3. Open `http://127.0.0.1:5173` and select `demo_showcase`.
-4. Build the optimized plan. Show two sections, two districts inside `section_1`, all four transport types, router/fiber-tool requirements, fixed two-hour windows, and `verified=true`.
-5. Select a request and open its explanation. Show hard constraint outcomes and a rejected alternative such as `NO_TRANSPORT`, `NO_EQUIPMENT`, or `TEAM_UNAVAILABLE`.
-6. Add a new emergency at `13:17` in `section_1`. Explain that it cannot start before the event and cannot cross to another section.
-7. Replan. The API returns a new child plan, before/after metrics, and a diff. Confirm an `IN_PROGRESS` request remains first when used in the scenario.
-8. Then select `combined` for the production-scale result: confirm `205/205`, at most `24` teams, no cross-section assignments, and `verified=true`.
-9. Stop and restart the backend with `.\start.ps1`; load the child plan again to verify SQLite restoration.
+## Подготовка
 
-The command-line equivalent of the persistence/replanning scenario is `.\.venv\Scripts\python.exe scripts\full_flow.py` after build.
+Из корня репозитория выполните `.\build.ps1`, затем `.\start.ps1`. Откройте <http://127.0.0.1:5173>. Backend Swagger находится на <http://127.0.0.1:8000/docs>.
+
+## Показ
+
+1. Выберите `demo_showcase` и постройте план. Это небольшой dataset для демонстрации ограничений: несколько участков, районы внутри участка, временные окна, разные skills/transport/equipment и аварийный тип.
+2. Покажите KPI, `✓ Проверен`, сравнение baseline/optimized и карту. Выберите бригаду и заявку, откройте explanation; укажите на причину, по которой конкретная альтернатива не подходит.
+3. Для динамической части откройте карточку и отметьте **фактические** статусы текущих работ: например, одну заявку `IN_PROGRESS`, уже законченные `COMPLETED`. Каждое status event сохраняется и строит дочерний план. Статус нельзя назначать по одному лишь плановому времени.
+4. Добавьте новую аварию в том же участке с временем фактического поступления, например `13:17`, и выполните replanning. Покажите, что `IN_PROGRESS` сохраняется за прежней бригадой, авария не стартует до release time, а будущие заявки могут изменить порядок/назначение. Покажите child plan и diff; parent остаётся сохранённым.
+5. Переключитесь на `combined`: в контрольном запуске от 2026-09-29 получено 205/205, 23 команды, `verified=true`, 0 межучастковых назначений. Это конкретный результат bounded wall-clock поиска, не математически доказанный минимум.
+
+## Persistence flow
+
+Для автоматизированной проверки полного цикла выполните:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\full_flow.py
+```
+
+Сценарий проверяет optimize → save → explanation → event → replan/diff → перезапуск приложения → restore. Для ручной проверки перезапуска завершите launcher через Ctrl+C и запустите его заново; конкретный сохранённый plan можно получить через `GET /api/plans/{plan_id}` в Swagger.

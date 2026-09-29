@@ -35,8 +35,8 @@ WORK_TYPE_PRIORITY: dict[WorkType, int] = {
 DEFAULT_SKILL: dict[WorkType, Skill] = {
     WorkType.EMERGENCY: Skill.EMERGENCY,
     WorkType.CONNECTION: Skill.CONNECTION,
-    WorkType.REPAIR: Skill.REPAIR,
-    WorkType.ADD_ON: Skill.REPAIR,
+    WorkType.REPAIR: Skill.LOCAL,
+    WorkType.ADD_ON: Skill.CONNECTION,
 }
 
 

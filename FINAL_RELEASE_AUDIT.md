@@ -1,72 +1,93 @@
-# FINAL RELEASE AUDIT — v1.0.2 FINAL
+# Final release audit — Beeline Route Planner
 
-Audit date: 2026-09-29. The audit covers the current backend/API, C++ binding, Python verifier, Leaflet frontend, persistence/replanning flow, release build, and current datasets. C++ solver code, search algorithms, objective, backend business rules, verifier, and datasets were not changed during this audit.
+Audit date: 2026-09-29
+Audited branch/base commit: `main`, `e9a09f7f7cb8a0057088852833a795eadbfe7ada`
+Project version: `v1.0.2 FINAL` (version string unchanged)
+Status: **PARTIAL — fixes and verification are complete for the checked paths; several release gates below remain unverified.**
 
-## verifier hardening
+## Scope and source of truth
 
-The verifier recalculates every assigned route schedule from the input problem and travel matrix. It now requires the returned schedule to contain exactly one matching stop per recalculated stop, compares request ID, arrival, start, finish, travel time, waiting, and distance, and always compares route-level travel time and distance—even when the returned schedule is empty. An incomplete schedule or incorrect route metrics makes the result invalid. Schedule recalculation independently enforces release time, request start window, and team shift.
+The source hackathon brief, current repository, tests, actual HTTP API, and browser were checked. The audit covered request/team modeling, constraints, schedule calculation, C++ binding, Python verifier, persistence, status events, replanning, Leaflet UI, launch/build scripts, and current datasets. Historical reports were not treated as proof. This checkout’s code and the measurements below are the current evidence.
 
-Regression coverage includes empty schedule, missing stop, altered route metrics, complete valid route, duplicate request assignment, and cross-section rejection. The empty-schedule regression was observed failing before the verifier change and passing after it.
+The main confirmed defects were: route schedule calculation did not consistently apply request release time and post-event team position; C++ scheduling lacked release-time parity; replanning could persist the wrong team snapshot and reconstruct time/status events inconsistently; event validation accepted invalid state/time combinations or surfaced server errors; and plan restore trusted a stored verified flag without re-verifying the stored solution. These were addressed with Python, C++, frontend event UI, and regression-test changes. No dataset or objective change was made.
 
-## current release version
+## Business rules checked
 
-The release remains `v1.0.2 FINAL`; this work does not create a new version. The root README, current readiness report, and current benchmark document identify v1.0.2. Older acceptance and v1.0.1 snapshot files are retained and labeled `HISTORICAL / SUPERSEDED — not current release`.
+- `section_id` is the canonical operational boundary; `region_id` is a legacy alias. Cross-section work is rejected; `district` is descriptive and does not restrict assignments.
+- Skills, transport, equipment, availability, release time, request windows, and team shifts are hard constraints. Missing skills/equipment do not become soft preferences.
+- The source brief’s competency categories were checked rather than inferring a skill count from work labels. `LOCAL` is a skill; BK/HD are source metadata. Work types are CONNECTION, EMERGENCY, ADD_ON, and REPAIR (with the supported legacy repair mapping).
+- Service duration is normalized from the central official catalogue: CONNECTION 70, EMERGENCY 80, ADD_ON 20, REPAIR 30 minutes; travel is separate.
+- Emergency event time becomes release time, and the schedule/verifier reject service before release. Status transitions are validated against scheduled intervals. COMPLETED, IN_PROGRESS, and ON_THE_WAY are fixed to their existing team/order; CANCELLED is removed from the active route. Future route requests may be re-optimized.
+- `TEAM_UNAVAILABLE` is implemented as an explicit event. Future work is reconsidered; already fixed work can remain with that team. This is not a live employee-location or shift-calendar system.
 
-## current benchmark
+## Confirmed changes and regression coverage
 
-Recorded on 2026-09-29 with `seed=42`, C++ mode, `time_limit_ms=3000`, default release configuration, and current prepared datasets. Each optimized result passed the Python verifier and had 100% assignment:
+- Schedule release-time, available-from, current-position, fixed-prefix, and shift handling were corrected; C++ request parsing/scheduling now carries release time.
+- Replanning now validates event/request/team identity, monotonic event times and valid status intervals; emergency duration/release are normalized; team snapshots and the actual child-plan problem are persisted.
+- Restored plans are recalculated through the independent Python verifier instead of trusting the persisted boolean.
+- Explainability identifies unavailable teams; frontend event form exposes the implemented team-unavailable event.
+- Regression tests cover status transitions, emergency timing and fixed work, completed work plus future requests, all-busy and free-team cases, unavailable teams, future availability/current position, malformed/foreign/duplicate events, persistence snapshot restoration, and verifier gating.
 
-| Dataset | Assigned | Unassigned | Used teams | Travel | Distance | Verified |
-|---|---:|---:|---:|---:|---:|:---:|
-| zone_1 | 66/66 | 0 | 7 | 417 min | 207.615 km | true |
-| zone_2 | 83/83 | 0 | 9 | 415 min | 207.837 km | true |
-| zone_3 | 56/56 | 0 | 7 | 343 min | 169.793 km | true |
-| combined | 205/205 | 0 | 24 | 1185 min | 589.655 km | true |
+Backend/C++ test command: `python -m pytest backend/tests cpp_solver/tests -q` — **102 passed**. Frontend Vitest: **5 files, 36 tests passed**. `scripts/full_flow.py` passed optimize → explanation → cancellation event → child replan/diff → dispose/restart app → restore and explanation; parent and child were verified. These are meaningful regression checks, but do not constitute every possible production status sequence or real-world field-location scenario.
 
-These travel and distance values describe this particular wall-clock-bounded run, not guaranteed exact outputs. Seed fixes stochastic choices, but wall-clock cutoff can change the amount of search completed. The hard invariants are `verified=true`, full assignment on the prepared datasets, and zero cross-section assignments in combined. Twenty-four teams is a confirmed found solution; global optimality is not proved. No reproducible OR-Tools artifact for this release is present, so this audit makes no OR-Tools team-count claim.
+## Replanning smoke evidence and semantic boundary
 
-## tests
+A live HTTP flow was run against the started backend using an isolated SQLite database and a small explicit audit fixture:
 
-| Validation | Result |
+| Step | Observed result |
 |---|---|
-| `python -m pytest backend/tests cpp_solver/tests -q` | 72 passed |
-| Frontend Vitest | 35 passed |
-| Frontend production build (`tsc -b && vite build`) | Passed |
-| `build.ps1` (pinned dependencies, C++ extension, frontend build) | Passed |
-| `scripts/full_flow.py` | Parent/child verified; explanation, event, replan, restart, and restore passed |
-| C++ optimized run + Python verifier: zone_1 | 66/66, verified |
-| C++ optimized run + Python verifier: zone_2 | 83/83, verified |
-| C++ optimized run + Python verifier: zone_3 | 56/56, verified |
-| C++ optimized run + Python verifier: combined | 205/205, verified; zero cross-section assignments |
+| Build parent plan | HTTP 200, verified; team 882 route `[88201, 88202]` |
+| Set request 88201 `IN_PROGRESS` at 13:17 | HTTP 200; planned interval included event time |
+| Submit emergency 88203 at 13:17 | HTTP 200; child request received event-time release |
+| Replan at 13:17 | HTTP 200, verified; request 88201 remained first on team 882 |
+| Child route | `[88201, 88202, 88203]`; fixed work 13:00–13:30, future repair 14:00–14:30, emergency 14:30–15:50 |
+| Restore child / explanation | HTTP 200, `verified=true`; emergency explanation HTTP 200 |
 
-## API and browser checks
+A second live check used the bundled zone_1 plan with an emergency at 13:17. When no request-status events were submitted, the parent’s 17 earlier scheduled stops still had status `NEW`; the child was constraint-valid but had 17 requests unassigned (50/67 assigned). The service does not infer `COMPLETED` from scheduled finish times, which avoids inventing field status. After explicit `COMPLETED` events were recorded for the 17 finished requests, replanning returned 67/67 assigned and verified, preserving those statuses. Operationally, dispatch must submit actual status updates before asking the planner to replan; a valid flag alone does not mean all work was assigned.
 
-The live `start.ps1` instance returned HTTP 200 for `/health`, the frontend entry point, and its served asset. Direct extension loading resolved to the `.pyd` under the current checkout's `cpp_solver` directory. Invalid JSON returned 422; missing plans and requests returned 404; invalid replanning returned 400; the backend remained healthy after each error.
+The future request remained before the emergency in this run because the existing route remained feasible. The implementation guarantees fixed work and release-time legality, and gives emergencies the configured priority for assignment/coverage; it does **not** encode a hard “serve every emergency at the earliest feasible instant before all future work” sequencing rule. The task brief defines priority lexicographically for unassigned coverage, not as a universal appointment-preemption constraint. If dispatch policy requires that stronger rule, it needs an explicit business decision and a separately tested objective/ordering change.
 
-The browser smoke flow covered combined planning, KPI and verifier status, Leaflet tiles/attribution, section filtering, baseline/optimized switching, request and team focus, drawer/explanation access, reset behavior, and the collapsed technical details. Routes and API values remained sourced from the active plan.
+The API test suite additionally covers ON_THE_WAY, COMPLETED, CANCELLED, TEAM_UNAVAILABLE, all-teams-busy, and free-team situations. `scripts/full_flow.py` exercises cancellation and persistence. TEAM_UNAVAILABLE is covered by API tests, but the full ten-case status matrix was not individually run through an external process restart for every case.
 
-## emergency and persistence
+## Current API benchmark sample
 
-The live emergency flow used `IN_PROGRESS + NEW_EMERGENCY`: the in-progress request remained first for its team, the new request was released at the event time, and the child plan was verified. The child explanation and route diff were returned. `scripts/full_flow.py` also confirmed optimize → save → explanation → event → replan → diff → restart/restore with verified parent and child plans.
+Recorded 2026-09-29 from live `/api/optimize`, using the checked-in frontend datasets, `seed=42`, requested `time_limit_ms=3000`, default `SolverConfig` feature values, `haversine_synthetic`, and Python verification. Baseline used the baseline mode with the same submitted seed/time-limit fields. Each row is a single run; wall-clock-bounded search can change runtime and secondary metrics.
 
-## known limitations
+| Dataset | Mode | Assigned | Teams | Travel (min) | Distance (km) | Runtime (ms) | Verified | Cross-section |
+|---|---|---:|---:|---:|---:|---:|:---:|---:|
+| zone_1 | baseline | 55/66 | 12 | 975 | 485.820 | 7.560 | true | 0 |
+| zone_1 | C++ | 66/66 | 7 | 375 | 187.901 | 2703.065 | true | 0 |
+| zone_2 | baseline | 70/83 | 12 | 1211 | 607.681 | 10.435 | true | 0 |
+| zone_2 | C++ | 83/83 | 9 | 415 | 207.837 | 2705.074 | true | 0 |
+| zone_3 | baseline | 43/56 | 11 | 627 | 314.786 | 5.341 | true | 0 |
+| zone_3 | C++ | 56/56 | 7 | 336 | 165.918 | 2702.428 | true | 0 |
+| combined | baseline | 168/205 | 35 | 2813 | 1408.287 | 30.595 | true | 0 |
+| combined | C++ | 205/205 | 23 | 1208 | 601.692 | 2969.708 | true | 0 |
+| demo_showcase | baseline | 5/5 | 4 | 1 | 0.447 | 0.172 | true | 0 |
+| demo_showcase | C++ | 5/5 | 4 | 1 | 0.447 | 23.779 | true | 0 |
 
-- Search is heuristic and does not prove a global fleet-size optimum.
-- Wall-clock limits mean travel time and distance can vary between runs, even with a fixed seed.
-- Haversine over anonymized/demo coordinates is synthetic routing; distances are comparative, not road-navigation measurements.
-- The Python verifier is independent of the C++ search implementation, but uses the backend's shared constraint and schedule rules as its business-policy source.
+The current sample found 23 teams for combined; this is a result of this particular run, **not a proof of global optimality or a fixed release guarantee**. Previously documented 24-team results remain valid only as historical run-specific measurements, not as a requirement. Distances are comparative because the coordinates and Haversine matrix are synthetic. No same-conditions OR-Tools artifact was found, so no OR-Tools result is claimed.
 
-## historical artifacts
+## Build, app and browser evidence
 
-- `RELEASE_SNAPSHOT_v1.0.1.md` is retained with a prominent superseded notice; its 20-team combined and 55/56 zone_3 figures are not current release results.
-- `acceptance_report.md` is retained as the 2026-09-20 acceptance record and labeled historical; its old test count and measurements are not current validation.
-- The unrestricted 20-team combined figure is not business-valid because it used cross-section assignments. It is explicitly labeled superseded in `docs/BENCHMARKS.md`.
-- No current-release claim that OR-Tools achieves 23 teams is made; no reproducible same-conditions artifact is included.
+- `npm run build`: passed; `npm test -- --run`: 36 passed.
+- `scripts/full_flow.py`: passed again on 2026-09-29; parent and child were both verified and restart/restore returned true.
+- `build.ps1`: **exit code 0** after rebuilding the C++ extension and frontend production bundle.
+- Live `start.ps1` was run twice on default ports with the production Vite preview. Each launch reported backend `/health` HTTP 200 and frontend HTTP 200; the production JavaScript asset also returned HTTP 200. The C++ extension import resolved to this checkout’s `cpp_solver/cpp_solver.cp314-win_amd64.pyd` (manual import requires the local MSYS runtime DLL directory).
+- Browser inspected the actual combined plan: 205/205, 23 teams, 1,208 travel minutes, 601.7 km, compact verified indicator, Leaflet map/OSM attribution, actual route and stop data, request drawer and backend explanation. A separate zone_1 browser view showed 66/66 and 7 teams. Map selection/filter behavior is also covered by frontend tests.
+- Ctrl+C stopped both started backend/frontend process trees on both runs; ports 8000/5173 became free and no matching project server processes remained. A separate pre-existing Vite process from `Documents\beeline-route-planner` was identified and deliberately not touched.
+- `git diff --check`: clean after the final documentation edits.
 
-## final readiness
+## Known limitations and remaining gates
 
-The scoped verifier defect is fixed and covered by a red-green regression. Backend/C++ tests, frontend tests/build, release build, five dataset validations, API error handling, browser smoke checks, emergency replanning, and the persistence/replanning restart flow passed. The project is ready as `v1.0.2 FINAL` subject to the documented heuristic and synthetic-routing limitations. No solver, algorithm, objective, verifier, backend business logic, or dataset changes were made. The final commit hash and push state are recorded in the release handoff and `git log`.
+- The full browser acceptance matrix was not manually exercised end-to-end for all five datasets, every UI event type, every selection/reset path, and every error state. Automated tests and the smoke paths above are not a substitute for that matrix.
+- The server-side current-position value is a supplied snapshot, not live GPS. When actual coordinates/time are not supplied, the planner cannot infer a team’s physical position beyond the scheduled plan.
+- Emergency priority currently governs lexicographic assignment/coverage; earliest-service sequencing ahead of all feasible future requests is not guaranteed (see live smoke observation).
+- The benchmark table is one current run; metrics are not guaranteed constants.
+- Global fleet-size optimality is not mathematically established. Routing is synthetic Haversine over anonymized/demo coordinates.
 
-## git state
+Historical acceptance and release snapshot files remain in the repository and are explicitly marked `HISTORICAL / SUPERSEDED`. Their old counts and measurements are not current results.
 
-The audited branch is `main` with remote `origin`. The final handoff includes the release commit hash, push result, and the post-push clean-tree check.
+## Final gate
+
+**PARTIAL.** The code-level regressions, backend/C++ and frontend suites, production build, `build.ps1`, five live dataset optimizations, verifier, live emergency/replan/restore flow, `full_flow.py` restart flow, repeated production-preview startup/shutdown, documentation-link checks, and final diff check passed. The full manual browser acceptance matrix and every status case as a separate external-process restart/restore scenario were not completed. GitHub publication is being completed at the user's request, but it does not turn those uncompleted acceptance checks into a PASS. Do not interpret this report as a claim that every item in the requested acceptance matrix has passed.

@@ -53,12 +53,14 @@ def _request_from_input(item, status: RequestStatus = RequestStatus.NEW) -> Requ
 
 def _team_from_input(item) -> Team:
     shift_start = parse_minutes(item.shift_start)
+    available_from = parse_minutes(item.available_from) if item.available_from is not None else shift_start
     return Team(id=item.id, name=item.name, start_lat=item.start_lat, start_lon=item.start_lon,
                 shift_start=shift_start, shift_end=parse_minutes(item.shift_end),
                 skills=_skills(item.skills), transport=Transport[item.transport], equipment=tuple(item.equipment),
                 available=item.available,
-                available_from=parse_minutes(item.available_from) if item.available_from is not None else shift_start,
-                region_id=_section_id(item), district=item.district)
+                available_from=available_from, current_lat=item.current_lat, current_lon=item.current_lon,
+                region_id=_section_id(item), district=item.district,
+                initial_available_from=available_from)
 
 
 def _problem_payload(problem: ProblemData) -> dict:
@@ -82,7 +84,8 @@ def _team_payload(team: Team) -> dict:
             "shift_start": team.shift_start, "shift_end": team.shift_end, "skills": int(team.skills),
             "transport": team.transport.value, "equipment": list(team.equipment), "available": team.available,
             "available_from": team.available_from, "current_lat": team.current_lat, "current_lon": team.current_lon,
-            "section_id": team.section_id, "region_id": team.region_id, "district": team.district}
+            "section_id": team.section_id, "region_id": team.region_id, "district": team.district,
+            "initial_available_from": team.initial_available_from}
 
 
 def _problem_from_payload(payload: dict) -> ProblemData:
@@ -102,26 +105,76 @@ def _problem_from_payload(payload: dict) -> ProblemData:
                        transport=Transport(item["transport"]), equipment=tuple(item.get("equipment", ())),
                        available=item.get("available", True), available_from=item.get("available_from", 0),
                        current_lat=item.get("current_lat"), current_lon=item.get("current_lon"),
-                       region_id=_payload_section_id(item), district=item.get("district", "")) for item in payload["teams"])
+                       region_id=_payload_section_id(item), district=item.get("district", ""),
+                       initial_available_from=item.get("initial_available_from", item.get("available_from", 0)))
+                   for item in payload["teams"])
     return ProblemData(requests, teams)
 
 
 def _apply_event_history(problem: ProblemData, events) -> ProblemData:
     requests = {request.id: request for request in problem.requests}
+    teams = {team.id: team for team in problem.teams}
     for event in events:
         payload = event.payload
         if payload.get("event_type") == ReplanningEventType.STATUS_CHANGED.value and payload.get("request_id") is not None:
             request = requests.get(payload["request_id"])
             if request is not None and payload.get("status"):
-                requests[request.id] = __import__("dataclasses", fromlist=["replace"]).replace(
-                    request, status=RequestStatus(payload["status"]))
+                status = RequestStatus(payload["status"])
+                changes = {"status": status}
+                if status == RequestStatus.ON_THE_WAY:
+                    changes["release_time"] = max(request.release_time, event.event_time)
+                    changes["window_start"] = max(request.window_start, event.event_time)
+                requests[request.id] = __import__("dataclasses", fromlist=["replace"]).replace(request, **changes)
         elif payload.get("event_type") == ReplanningEventType.NEW_EMERGENCY.value and payload.get("request"):
             request = _request_from_input(__import__("app.api.schemas", fromlist=["RequestInput"]).RequestInput(**payload["request"]))
             requests[request.id] = __import__("dataclasses", fromlist=["replace"]).replace(
                 request, status=RequestStatus.NEW, work_type=WorkType.EMERGENCY,
                 priority=priority_for(WorkType.EMERGENCY), service_duration=service_duration_for(WorkType.EMERGENCY),
                 release_time=event.event_time, window_start=max(request.window_start, event.event_time))
-    return ProblemData(tuple(requests.values()), problem.teams)
+        elif payload.get("event_type") == ReplanningEventType.TEAM_UNAVAILABLE.value and payload.get("team_id") is not None:
+            team = teams.get(payload["team_id"])
+            if team is not None:
+                teams[team.id] = __import__("dataclasses", fromlist=["replace"]).replace(team, available=False)
+    return ProblemData(tuple(requests.values()), tuple(teams.values()))
+
+
+def _event_time(value, field_name: str) -> int:
+    try:
+        return parse_minutes(value)
+    except (TypeError, ValueError) as error:
+        raise HTTPException(status_code=422, detail=f"invalid {field_name}: {error}") from error
+
+
+def _validate_status_event(problem: ProblemData, solution, events, request_id: int,
+                           status: RequestStatus, event_time: int) -> None:
+    effective = _apply_event_history(problem, events)
+    request_map = {request.id: request for request in effective.requests}
+    request = request_map.get(request_id)
+    if request is None:
+        raise HTTPException(status_code=404, detail="request not found in plan")
+
+    current = request.status
+    if current in {RequestStatus.COMPLETED, RequestStatus.CANCELLED}:
+        raise HTTPException(status_code=422, detail=f"terminal request status {current.value}")
+    if status == current or status in {RequestStatus.NEW, RequestStatus.ASSIGNED}:
+        raise HTTPException(status_code=422, detail="status transition must move forward")
+    if status != RequestStatus.CANCELLED:
+        progress = {RequestStatus.NEW: 0, RequestStatus.ASSIGNED: 0,
+                    RequestStatus.ON_THE_WAY: 1, RequestStatus.IN_PROGRESS: 2,
+                    RequestStatus.COMPLETED: 3}
+        if progress[status] <= progress[current]:
+            raise HTTPException(status_code=422, detail="status transition must move forward")
+
+    stops = {stop.request_id: stop for route in solution.routes for stop in route.schedule}
+    stop = stops.get(request_id)
+    if status in {RequestStatus.ON_THE_WAY, RequestStatus.IN_PROGRESS, RequestStatus.COMPLETED} and stop is None:
+        raise HTTPException(status_code=422, detail=f"{status.value} requires an assigned scheduled request")
+    if stop is not None and status == RequestStatus.ON_THE_WAY and event_time > stop.start:
+        raise HTTPException(status_code=422, detail="ON_THE_WAY cannot follow planned start")
+    if stop is not None and status == RequestStatus.IN_PROGRESS and not stop.start <= event_time < stop.finish:
+        raise HTTPException(status_code=422, detail="IN_PROGRESS must fall within the planned work interval")
+    if stop is not None and status == RequestStatus.COMPLETED and event_time < stop.finish:
+        raise HTTPException(status_code=422, detail="COMPLETED cannot precede planned finish")
 
 
 def _solution_payload(solution) -> dict:
@@ -218,8 +271,12 @@ def get_plan(plan_id: str, http_request: HttpRequest):
         row = PlanRepository(session).get_plan(plan_id)
         if row is None:
             raise HTTPException(status_code=404, detail="plan not found")
+        problem = _problem_from_payload(row.problem_payload)
         solution = _solution_from_payload(row.solution_payload)
-        return _plan_response(row.id, row.parent_plan_id, solution, row.metrics_payload, row.verified,
+        verification = verify_solution(problem, solution, HaversineTravelMatrix())
+        if not row.verified or not verification.valid:
+            raise HTTPException(status_code=503, detail="stored plan failed independent verification")
+        return _plan_response(row.id, row.parent_plan_id, solution, row.metrics_payload, verification.valid,
                               solver_config=row.solver_config, solver_version=row.solver_version,
                               routing_source=row.routing_source)
 
@@ -228,10 +285,32 @@ def get_plan(plan_id: str, http_request: HttpRequest):
 def create_plan_event(plan_id: str, payload: PlanEventInput, http_request: HttpRequest):
     with http_request.app.state.session_factory() as session:
         repository = PlanRepository(session)
-        if repository.get_plan(plan_id) is None:
+        plan = repository.get_plan(plan_id)
+        if plan is None:
             raise HTTPException(status_code=404, detail="plan not found")
-        event_time = parse_minutes(payload.event_time)
-        event_payload = payload.model_dump()
+        event_time = _event_time(payload.event_time, "event_time")
+        events = repository.events(plan_id)
+        if events and event_time < events[-1].event_time:
+            raise HTTPException(status_code=422, detail="event_time cannot precede a previous plan event")
+        problem = _problem_from_payload(plan.problem_payload)
+        solution = _solution_from_payload(plan.solution_payload)
+        event_payload = payload.model_dump(mode="json")
+        if payload.event_type == ReplanningEventType.STATUS_CHANGED.value:
+            _validate_status_event(problem, solution, events, payload.request_id, payload.status, event_time)
+        elif payload.event_type == ReplanningEventType.NEW_EMERGENCY.value:
+            try:
+                _request_from_input(payload.request)
+            except (KeyError, TypeError, ValueError) as error:
+                raise HTTPException(status_code=422, detail=f"invalid emergency request: {error}") from error
+            existing_ids = {request.id for request in _apply_event_history(problem, events).requests}
+            if payload.request.id in existing_ids:
+                raise HTTPException(status_code=422, detail="emergency request id already exists in plan")
+        else:
+            team = next((team for team in problem.teams if team.id == payload.team_id), None)
+            if team is None:
+                raise HTTPException(status_code=404, detail="team not found in plan")
+            if not team.available:
+                raise HTTPException(status_code=422, detail="team is already unavailable")
         row = repository.save_event(plan_id, event_time, event_payload)
         return {"event_id": row.id, "plan_id": plan_id, "event_time": event_time, **event_payload}
 
@@ -246,7 +325,16 @@ def replan_plan(plan_id: str, payload: ReplanInput, http_request: HttpRequest):
         event = repository.get_event(payload.event_id) if payload.event_id else repository.latest_event(plan_id)
         if event is None:
             raise HTTPException(status_code=400, detail="plan has no event")
-        problem = _apply_event_history(_problem_from_payload(parent.problem_payload), repository.events(plan_id))
+        if event.plan_id != plan_id:
+            raise HTTPException(status_code=404, detail="event not found in plan")
+        events = repository.events(plan_id)
+        current_time = _event_time(payload.current_time, "current_time") if payload.current_time is not None else event.event_time
+        if events and current_time < max(item.event_time for item in events):
+            raise HTTPException(status_code=422, detail="current_time cannot precede a plan event")
+        try:
+            problem = _apply_event_history(_problem_from_payload(parent.problem_payload), events)
+        except (KeyError, ValueError, TypeError) as error:
+            raise HTTPException(status_code=422, detail=f"invalid stored event history: {error}") from error
         current_plan = _solution_from_payload(parent.solution_payload)
         event_payload = event.payload
         event_request = None
@@ -254,10 +342,12 @@ def replan_plan(plan_id: str, payload: ReplanInput, http_request: HttpRequest):
             event_request = _request_from_input(__import__("app.api.schemas", fromlist=["RequestInput"]).RequestInput(**event_payload["request"]))
         event_object = ReplanningEvent(event_payload["event_type"], event_payload.get("request_id"),
                                        RequestStatus(event_payload["status"]) if event_payload.get("status") else None,
-                                       event_request)
-        current_time = parse_minutes(payload.current_time) if payload.current_time is not None else event.event_time
+                                       event_request, event.event_time, event_payload.get("team_id"))
         config = SolverConfig.from_dict(parent.solver_config)
-        result = ReplanningService(config=config).replan(problem, current_plan, current_time, event_object)
+        try:
+            result = ReplanningService(config=config).replan(problem, current_plan, current_time, event_object)
+        except (KeyError, ValueError, TypeError) as error:
+            raise HTTPException(status_code=422, detail=f"invalid replanning event: {error}") from error
         if not result.verification.valid:
             raise HTTPException(status_code=503, detail="replanned solution rejected by verifier")
         new_plan_id = str(uuid4())
@@ -267,7 +357,7 @@ def replan_plan(plan_id: str, payload: ReplanInput, http_request: HttpRequest):
                         "route_changed_team_ids": list(result.diff.route_changed_team_ids),
                         "cancelled_request_ids": list(result.diff.cancelled_request_ids),
                         "new_request_ids": list(result.diff.new_request_ids)}
-        repository.save_plan(new_plan_id, plan_id, _problem_payload(problem), _solution_payload(result.plan),
+        repository.save_plan(new_plan_id, plan_id, _problem_payload(result.problem), _solution_payload(result.plan),
                              after_metrics, result.verification.valid, current_time,
                              config.to_dict(), parent.solver_version, parent.routing_source)
         repository.save_diff(new_plan_id, event.id, diff_payload)
