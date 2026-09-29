@@ -40,6 +40,8 @@ function Get-ProcessLog([string]$Name) {
 
 function Stop-ProcessTree([System.Diagnostics.Process]$Process) {
     if ($null -eq $Process) { return }
+    $existingProcess = Get-Process -Id $Process.Id -ErrorAction SilentlyContinue
+    if ($null -eq $existingProcess) { return }
     $Process.Refresh()
     if ($Process.HasExited) { return }
 
@@ -56,7 +58,7 @@ function Stop-ProcessTree([System.Diagnostics.Process]$Process) {
     }
     if ($taskkillExitCode -ne 0) {
         $message = ($taskkillOutput | Out-String).Trim()
-        if ($message -match '(?i)process.*(not found|does not exist)|не удается найти процесс|не удаётся найти процесс') {
+        if ($null -eq (Get-Process -Id $Process.Id -ErrorAction SilentlyContinue)) {
             return
         }
         throw "Не удалось остановить дерево процесса PID $($Process.Id): $message"
